@@ -4,6 +4,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -17,9 +20,9 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    public List<Parks> parks = new ArrayList<Parks>();
+    public List<Parks> parks = new ArrayList<>();
 
-    private ParkAdapter mAdapter;
+    private ParkAdapter parkAdapter;
     private MobileServiceClient mClient;
     private MobileServiceTable<Parks> parksTable;
 
@@ -27,8 +30,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 //
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -38,6 +41,14 @@ public class MainActivity extends AppCompatActivity {
 //                        .setAction("Action", null).show();
 //            }
 //        });
+
+        RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
+        recyclerView.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(llm);
+
+        parkAdapter = new ParkAdapter(parks);
+        recyclerView.setAdapter(parkAdapter);
 
         try {
             mClient = new MobileServiceClient(
@@ -51,9 +62,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Create an adapter to bind the items with the view
-        mAdapter = new ParkAdapter(this, R.layout.row_list_park);
-        ListView listView = (ListView) findViewById(R.id.listView);
-        listView.setAdapter(mAdapter);
+//        mAdapter = new ParkAdapter(this, R.layout.row_list_park);
+//        ListView listView = (ListView) findViewById(R.id.listView);
+//        listView.setAdapter(mAdapter);
 
         // Load the items from the Mobile Service
         refreshItemsFromTable();
@@ -81,38 +92,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void checkItem(final Parks park) {
-
-        // Set the item as completed and update it in the table
-//        park.setComplete(true);
-
-	    new AsyncTask<Void, Void, Void>() {
-
-	        @Override
-	        protected Void doInBackground(Void... params) {
-	            try {
-	                parksTable.update(park).get();
-	                runOnUiThread(new Runnable() {
-	                    public void run() {
-//	                        if (park.isComplete()) {
-//	                            mAdapter.remove(park);
-//	                        }
-	                        refreshItemsFromTable();
-	                    }
-	                });
-	            } catch (Exception exception) {
-	                createAndShowDialog(exception, "Error");
-	            }
-	            return null;
-	        }
-	    }.execute();
-
-        parks.add(park);
-//        if (park.isComplete()) {
-//            mAdapter.remove(park);
-//        }
-    }
-
     private void refreshItemsFromTable() {
 		// Get the items that weren't marked as completed and add them in the adapter
 	    new AsyncTask<Void, Void, Void>() {
@@ -121,15 +100,16 @@ public class MainActivity extends AppCompatActivity {
 	        protected Void doInBackground(Void... params) {
 	            try {
 //	                final MobileServiceList<Parks> result = parksTable.where().field("complete").eq(false).execute().get();
-                    final MobileServiceList<Parks> result = parksTable.select("name").execute().get();
+                    final MobileServiceList<Parks> result = parksTable.where().execute().get();
 	                runOnUiThread(new Runnable() {
 
 	                    @Override
 	                    public void run() {
-	                        mAdapter.clear();
+//	                        parkAdapter.clear();
 
 	                        for (Parks park : result) {
-	                            mAdapter.add(park);
+                                parkAdapter.parks.add(park);
+                                parkAdapter.notifyItemInserted(parkAdapter.parks.size()-1);
 	                        }
 	                    }
 	                });
@@ -141,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
 	    }.execute();
 
 //		TODO Comment out these lines to remove the in-memory store
-        mAdapter.clear();
+//        mAdapter.clear();
 //        for (Parks park : parks)
 //        {
 //            if (park.isComplete() == false)
