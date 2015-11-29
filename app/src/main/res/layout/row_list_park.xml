@@ -45,6 +45,14 @@
                 android:layout_below="@+id/parkStreet"
                 android:textSize="10sp"
                 />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/parkDistance"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/parkSuburb"
+                android:textSize="10sp"
+                />
         </RelativeLayout>
     </android.support.v7.widget.CardView>
 </LinearLayout>

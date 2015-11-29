@@ -1,6 +1,9 @@
 package com.jonathancromie.brisbanecityparks;
 
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -10,20 +13,15 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ListView;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.maps.android.SphericalUtil;
 import com.microsoft.windowsazure.mobileservices.*;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
-import com.microsoft.windowsazure.mobileservices.table.query.QueryOrder;
-
 import java.net.MalformedURLException;
-import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -34,8 +32,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private MobileServiceClient mClient;
     private MobileServiceTable<Parks> parksTable;
 
-    private GoogleApiClient mGoogleApiClient;
-    private Location mLastLocation;
+    private LocationManager locationManager;
+    private LocationListener locationListener;
+    private Location lastKnownLocation;
+    private String locationProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +44,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        buildGoogleApiClient();
+        // Acquire a reference to the system Location Manager
+        locationManager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
+
+        // Define a listener that responds to location updates
+        locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                // Called when a new location is found by the network location provider.
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+            public void onProviderEnabled(String provider) {
+                lastKnownLocation = locationManager.getLastKnownLocation(provider);
+            }
+
+            public void onProviderDisabled(String provider) {}
+        };
+
+        locationProvider = LocationManager.GPS_PROVIDER;
+        // Register the listener with the Location Manager to receive location updates
+        locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
+
+
 //
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -74,13 +96,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             e.printStackTrace();
         }
 
-        // Create an adapter to bind the items with the view
-//        mAdapter = new ParkAdapter(this, R.layout.row_list_park);
-//        ListView listView = (ListView) findViewById(R.id.listView);
-//        listView.setAdapter(mAdapter);
-
         // Load the items from the Mobile Service
-        refreshItemsFromTable();
+//        refreshItemsFromTable();
     }
 
     @Override
@@ -105,14 +122,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return super.onOptionsItemSelected(item);
     }
 
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
     private void refreshItemsFromTable() {
 		// Get the items that weren't marked as completed and add them in the adapter
 	    new AsyncTask<Void, Void, Void>() {
@@ -127,11 +136,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 	                    @Override
 	                    public void run() {
 //	                        parkAdapter.clear();
+                            locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
+                            LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+                            Collections.sort(parks, new SortParks(userLocation));
 
-	                        for (Parks park : result) {
+	                        for (final Parks park : result) {
                                 parkAdapter.parks.add(park);
                                 parkAdapter.notifyItemInserted(parkAdapter.parks.size()-1);
 	                        }
+
+
 	                    }
 	                });
     	            } catch (Exception exception) {
@@ -180,11 +194,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-//        if (mLastLocation != null) {
-//            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
-//            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-//        }
+        refreshItemsFromTable();
     }
 
     @Override
