@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.util.SortedList;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -17,6 +18,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.SphericalUtil;
 import com.microsoft.windowsazure.mobileservices.*;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import java.net.MalformedURLException;
@@ -26,9 +28,11 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    public List<Parks> parks = new ArrayList<>();
-
+    private List<Parks> parks;
+    private RecyclerView recyclerView;
+    private LinearLayoutManager linearLayoutManager;
     private ParkAdapter parkAdapter;
+
     private MobileServiceClient mClient;
     private MobileServiceTable<Parks> parksTable;
 
@@ -56,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             public void onStatusChanged(String provider, int status, Bundle extras) {}
 
             public void onProviderEnabled(String provider) {
-                lastKnownLocation = locationManager.getLastKnownLocation(provider);
+
             }
 
             public void onProviderDisabled(String provider) {}
@@ -65,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         locationProvider = LocationManager.GPS_PROVIDER;
         // Register the listener with the Location Manager to receive location updates
         locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
-
+        lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
 
 //
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -77,12 +81,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //            }
 //        });
 
-        RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
+        recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(llm);
+        linearLayoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(linearLayoutManager);
 
-        parkAdapter = new ParkAdapter(parks);
+//        parkAdapter = new ParkAdapter(parks);
+        parks = new ArrayList<Parks>();
+        parkAdapter = new ParkAdapter(getLayoutInflater(), parks);
         recyclerView.setAdapter(parkAdapter);
 
         try {
@@ -97,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
 
         // Load the items from the Mobile Service
-//        refreshItemsFromTable();
+        refreshItemsFromTable();
     }
 
     @Override
@@ -138,12 +144,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //	                        parkAdapter.clear();
                             locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
                             LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-                            Collections.sort(parks, new SortParks(userLocation));
+//                            Collections.sort(parks, new SortParks(userLocation));
 
 	                        for (final Parks park : result) {
-                                parkAdapter.parks.add(park);
-                                parkAdapter.notifyItemInserted(parkAdapter.parks.size()-1);
+                                LatLng parkLocation = new LatLng(Double.parseDouble(park.latitude),
+                                        Double.parseDouble(park.longitude));
+                                park.distance = SphericalUtil.computeDistanceBetween(userLocation, parkLocation);
+                                parks.add(park);
+
 	                        }
+
+                            for (Parks park : parks) {
+                                parkAdapter.addPark(park);
+                                parkAdapter.notifyItemInserted(parkAdapter.parks.size()-1);
+                            }
 
 
 	                    }
@@ -194,7 +208,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle bundle) {
-        refreshItemsFromTable();
     }
 
     @Override

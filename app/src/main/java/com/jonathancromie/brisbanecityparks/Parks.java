@@ -63,7 +63,9 @@ public class Parks {
     @com.google.gson.annotations.SerializedName("longitude")
     String longitude;
 
-    public Parks(String id, String code, String name, String street, String suburb, String easting, String northing, String latitude, String longitude) {
+    double distance;
+
+    public Parks(String id, String code, String name, String street, String suburb, String easting, String northing, String latitude, String longitude, double distance) {
         this.id = id;
         this.code = code;
         this.name = name;
@@ -73,6 +75,7 @@ public class Parks {
         this.northing = northing;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.distance = distance;
     }
 
 

@@ -32,6 +32,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/parkDistance"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:textSize="15sp"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:id="@+id/parkStreet"
                 android:layout_alignParentLeft="true"
                 android:layout_below="@+id/parkName"
@@ -43,14 +51,6 @@
                 android:id="@+id/parkSuburb"
                 android:layout_alignParentLeft="true"
                 android:layout_below="@+id/parkStreet"
-                android:textSize="10sp"
-                />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/parkDistance"
-                android:layout_alignParentLeft="true"
-                android:layout_below="@+id/parkSuburb"
                 android:textSize="10sp"
                 />
         </RelativeLayout>
