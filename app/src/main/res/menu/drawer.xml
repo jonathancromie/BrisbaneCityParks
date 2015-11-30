@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/local"
+            android:checked="true"
+            android:icon="@drawable/common_google_signin_btn_icon_dark"
+            android:title="Local"/>
+        <item
+            android:id="@+id/whats_hot"
+            android:icon="@drawable/common_google_signin_btn_icon_dark"
+            android:title="What's Hot"/>
+        <item
+            android:id="@+id/trending"
+            android:icon="@drawable/common_google_signin_btn_icon_dark"
+            android:title="Trending"/>
+    </group>
+</menu>

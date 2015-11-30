@@ -6,6 +6,9 @@ import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.util.SortedList;
@@ -14,6 +17,8 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -40,6 +45,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private LocationListener locationListener;
     private Location lastKnownLocation;
     private String locationProvider;
+
+    private DrawerLayout drawerLayout;
+    private ActionBarDrawerToggle drawerToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +93,27 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         recyclerView.setHasFixedSize(true);
         linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
+
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout,
+                toolbar, 0, 0) {
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+//                getActionBar().setTitle("Goodbye");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+//                getActionBar().setTitle("Hello");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
+
+        // Set the drawer toggle as the DrawerListener
+        drawerLayout.setDrawerListener(drawerToggle);
 
 //        parkAdapter = new ParkAdapter(parks);
         parks = new ArrayList<Parks>();
@@ -163,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 	                    }
 	                });
     	            } catch (Exception exception) {
-	                createAndShowDialog(exception, "Error");
+//	                createAndShowDialog(exception, "Error");
 	            }
 	            return null;
 	        }
@@ -178,33 +207,44 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //        }
     }
 
-    /**
-     * Creates a dialog and shows it
-     *
-     * @param exception
-     *            The exception to show in the dialog
-     * @param title
-     *            The dialog title
-     */
-    private void createAndShowDialog(Exception exception, String title) {
-        createAndShowDialog(exception.toString(), title);
+    private void setupDrawerContent(NavigationView navigationView) {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item) {
+                item.setChecked(true);
+                drawerLayout.closeDrawers();
+                return true;
+            }
+        });
     }
 
-    /**
-     * Creates a dialog and shows it
-     *
-     * @param message
-     *            The dialog message
-     * @param title
-     *            The dialog title
-     */
-    private void createAndShowDialog(String message, String title) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        builder.setMessage(message);
-        builder.setTitle(title);
-        builder.create().show();
-    }
+//    /**
+//     * Creates a dialog and shows it
+//     *
+//     * @param exception
+//     *            The exception to show in the dialog
+//     * @param title
+//     *            The dialog title
+//     */
+//    private void createAndShowDialog(Exception exception, String title) {
+//        createAndShowDialog(exception.toString(), title);
+//    }
+//
+//    /**
+//     * Creates a dialog and shows it
+//     *
+//     * @param message
+//     *            The dialog message
+//     * @param title
+//     *            The dialog title
+//     */
+//    private void createAndShowDialog(String message, String title) {
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//
+//        builder.setMessage(message);
+//        builder.setTitle(title);
+//        builder.create().show();
+//    }
 
     @Override
     public void onConnected(Bundle bundle) {
