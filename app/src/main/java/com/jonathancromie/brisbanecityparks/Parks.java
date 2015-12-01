@@ -13,7 +13,7 @@ public class Parks {
      * Item Id
      */
     @com.google.gson.annotations.SerializedName("id")
-    String id;
+    int id;
 
     /**
      * Item text
@@ -55,17 +55,17 @@ public class Parks {
      * Item text
      */
     @com.google.gson.annotations.SerializedName("latitude")
-    String latitude;
+    double latitude;
 
     /**
      * Item text
      */
     @com.google.gson.annotations.SerializedName("longitude")
-    String longitude;
+    double longitude;
 
     double distance;
 
-    public Parks(String id, String code, String name, String street, String suburb, String easting, String northing, String latitude, String longitude, double distance) {
+    public Parks(int id, String code, String name, String street, String suburb, String easting, String northing, double latitude, double longitude, double distance) {
         this.id = id;
         this.code = code;
         this.name = name;

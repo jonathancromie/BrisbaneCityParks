@@ -5,6 +5,7 @@
             <menu>
                 <item
                     android:id="@+id/local_fragment"
+                    android:actionLayout="@layout/fragment_local"
                     android:checked="true"
                     android:icon="@drawable/ic_place_black_24dp"
                     android:title="Local"/>

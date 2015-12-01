@@ -20,9 +20,11 @@ import android.support.v7.util.SortedList;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -36,20 +38,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity {
 
-    private List<Parks> parks;
+//    private List<Parks> parks;
     private RecyclerView recyclerView;
     private LinearLayoutManager linearLayoutManager;
-    private ParkAdapter parkAdapter;
+//    private ParkAdapter parkAdapter;
+//
+//    private MobileServiceClient mClient;
+//    private MobileServiceTable<Parks> parksTable;
+//
+//    private LocationManager locationManager;
+//    private LocationListener locationListener;
+//    private Location lastKnownLocation;
+//    private String locationProvider;
 
-    private MobileServiceClient mClient;
-    private MobileServiceTable<Parks> parksTable;
-
-    private LocationManager locationManager;
-    private LocationListener locationListener;
-    private Location lastKnownLocation;
-    private String locationProvider;
+//    private CharSequence drawerTitle;
+//    private CharSequence mTitle;
+    private String[] navMenuTitles;
 
     private DrawerLayout drawerLayout;
     private Toolbar toolbar;
@@ -63,10 +69,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // enable ActionBar app icon to behave as action to toggle nav drawer
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
         // Find our drawer view
         navigationView = (NavigationView) findViewById(R.id.navigationView);
         // Setup drawer view
         setUpDrawerContent(navigationView);
+
+//        mTitle = drawerTitle = getTitle();
+//        navMenuTitles = getResources().getStringArray(R.array.item_array);
 
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         drawerToggle = setUpDrawerToggle();
@@ -74,28 +87,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         // Set the drawer toggle as the DrawerListener
         drawerLayout.setDrawerListener(drawerToggle);
 
-        // Acquire a reference to the system Location Manager
-        locationManager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
 
-        // Define a listener that responds to location updates
-        locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            public void onProviderDisabled(String provider) {}
-        };
-
-        locationProvider = LocationManager.GPS_PROVIDER;
-        // Register the listener with the Location Manager to receive location updates
-        locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
-        lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
+//        // Acquire a reference to the system Location Manager
+//        locationManager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
+//
+//        // Define a listener that responds to location updates
+//        locationListener = new LocationListener() {
+//            public void onLocationChanged(Location location) {
+//                // Called when a new location is found by the network location provider.
+//            }
+//
+//            public void onStatusChanged(String provider, int status, Bundle extras) {}
+//
+//            public void onProviderEnabled(String provider) {
+//
+//            }
+//
+//            public void onProviderDisabled(String provider) {}
+//        };
+//
+//        locationProvider = LocationManager.GPS_PROVIDER;
+//        // Register the listener with the Location Manager to receive location updates
+//        locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
+//        lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
 
 //
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -107,29 +121,28 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //            }
 //        });
 
-        recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
-        recyclerView.setHasFixedSize(true);
-        linearLayoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(linearLayoutManager);
+//        recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
+//        recyclerView.setHasFixedSize(true);
+//        linearLayoutManager = new LinearLayoutManager(this);
+//        recyclerView.setLayoutManager(linearLayoutManager);
 
-        //        parkAdapter = new ParkAdapter(parks);
-        parks = new ArrayList<Parks>();
-        parkAdapter = new ParkAdapter(getLayoutInflater(), parks);
-        recyclerView.setAdapter(parkAdapter);
-
-        try {
-            mClient = new MobileServiceClient(
-                    "https://brisbanecityparks.azure-mobile.net/",
-                    "mycnswzLkAkAlVpcnBcPQhBKcjSEyT16",
-                    this
-            );
-            parksTable = mClient.getTable(Parks.class);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
-        // Load the items from the Mobile Service
-        refreshItemsFromTable();
+//        parks = new ArrayList<Parks>();
+//        parkAdapter = new ParkAdapter(getLayoutInflater(), parks);
+//        recyclerView.setAdapter(parkAdapter);
+//
+//        try {
+//            mClient = new MobileServiceClient(
+//                    "https://brisbanecityparks.azure-mobile.net/",
+//                    "mycnswzLkAkAlVpcnBcPQhBKcjSEyT16",
+//                    this
+//            );
+//            parksTable = mClient.getTable(Parks.class);
+//        } catch (MalformedURLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        // Load the items from the Mobile Service
+//        refreshItemsFromTable();
     }
 
     // Make sure this is the method with just `Bundle` as the signature
@@ -183,46 +196,45 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         drawerToggle.syncState();
     }
 
-    private void refreshItemsFromTable() {
-		// Get the items that weren't marked as completed and add them in the adapter
-	    new AsyncTask<Void, Void, Void>() {
-
-	        @Override
-	        protected Void doInBackground(Void... params) {
-	            try {
-//	                final MobileServiceList<Parks> result = parksTable.where().field("complete").eq(false).execute().get();
-                    final MobileServiceList<Parks> result = parksTable.where().execute().get();
-	                runOnUiThread(new Runnable() {
-
-	                    @Override
-	                    public void run() {
-//	                        parkAdapter.clear();
-                            locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
-                            LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-//                            Collections.sort(parks, new SortParks(userLocation));
-
-	                        for (final Parks park : result) {
-                                LatLng parkLocation = new LatLng(Double.parseDouble(park.latitude),
-                                        Double.parseDouble(park.longitude));
-                                park.distance = SphericalUtil.computeDistanceBetween(userLocation, parkLocation);
-                                parks.add(park);
-
-	                        }
-
-                            for (Parks park : parks) {
-                                parkAdapter.addPark(park);
-                                parkAdapter.notifyItemInserted(parkAdapter.parks.size()-1);
-                            }
-
-
-	                    }
-	                });
-    	            } catch (Exception exception) {
-//	                createAndShowDialog(exception, "Error");
-	            }
-	            return null;
-	        }
-	    }.execute();
+//    private void refreshItemsFromTable() {
+//		// Get the items that weren't marked as completed and add them in the adapter
+//	    new AsyncTask<Void, Void, Void>() {
+//
+//	        @Override
+//	        protected Void doInBackground(Void... params) {
+//	            try {
+////	                final MobileServiceList<Parks> result = parksTable.where().field("complete").eq(false).execute().get();
+//                    final MobileServiceList<Parks> result = parksTable.where().execute().get();
+//	                runOnUiThread(new Runnable() {
+//
+//	                    @Override
+//	                    public void run() {
+////	                        parkAdapter.clear();
+//                            locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
+//                            LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+//
+//	                        for (final Parks park : result) {
+//                                LatLng parkLocation = new LatLng(Double.parseDouble(park.latitude),
+//                                        Double.parseDouble(park.longitude));
+//                                park.distance = SphericalUtil.computeDistanceBetween(userLocation, parkLocation);
+//                                parks.add(park);
+//
+//	                        }
+//
+//                            for (Parks park : parks) {
+//                                parkAdapter.addPark(park);
+//                                parkAdapter.notifyItemInserted(parkAdapter.parks.size()-1);
+//                            }
+//
+//
+//	                    }
+//	                });
+//    	            } catch (Exception exception) {
+////	                createAndShowDialog(exception, "Error");
+//	            }
+//	            return null;
+//	        }
+//	    }.execute();
 
 //		TODO Comment out these lines to remove the in-memory store
 //        mAdapter.clear();
@@ -231,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //            if (park.isComplete() == false)
 //                mAdapter.add(park);
 //        }
-    }
+//    }
 
     private ActionBarDrawerToggle setUpDrawerToggle() {
         return new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open,  R.string.drawer_close);
@@ -250,20 +262,39 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     public void selectDrawerItem(MenuItem menuItem) {
-        // Create a new fragment and specify the planet to show based on
-        // position
-        Fragment fragment = null;
+//        Fragment fragment = null;
+//        switch (menuItem.getItemId()) {
+//            case R.id.local_fragment:
+//                fragment = new LocalFragment();
+//                break;
+//            default:
+//                fragment = new LocalFragment();
+//                break;
+//        }
+//
+//        if (fragment != null) {
+//            FragmentManager fragmentManager = getSupportFragmentManager();
+//            fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+//
+//            // Highlight the selected item, update the title, and close the drawer
+//            menuItem.setChecked(true);
+//            setTitle(menuItem.getTitle());
+//            drawerLayout.closeDrawers();
+//        }
 
-        Class fragmentClass;
+
+
+        Fragment fragment = null;
+        Class fragmentClass = null;
         switch(menuItem.getItemId()) {
             case R.id.local_fragment:
                 fragmentClass = LocalFragment.class;
                 break;
             case R.id.whats_hot_fragment:
-                fragmentClass = WhatsHotFragment.class;
+//                fragmentClass = WhatsHotFragment.class;
                 break;
             case R.id.trending_fragment:
-                fragmentClass = TrendingFragment.class;
+//                fragmentClass = TrendingFragment.class;
                 break;
             default:
                 fragmentClass = LocalFragment.class;
@@ -277,12 +308,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.frameLayout, fragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
 
         // Highlight the selected item, update the title, and close the drawer
         menuItem.setChecked(true);
         setTitle(menuItem.getTitle());
         drawerLayout.closeDrawers();
+
     }
 
 //    /**
@@ -312,18 +344,4 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //        builder.setTitle(title);
 //        builder.create().show();
 //    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
 }
