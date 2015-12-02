@@ -56,6 +56,26 @@
                 android:layout_below="@+id/parkStreet"
                 android:textSize="14sp"
                 />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/explore"
+                android:layout_alignParentBottom="true"
+                android:text="Explore"
+                android:textColor="#795548"
+                android:background="@android:color/transparent" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/share"
+                android:layout="@+id/share"
+                android:text="Share"
+                android:layout_alignParentBottom="true"
+                android:layout_toRightOf="@+id/explore"
+                android:layout_toEndOf="@+id/explore"
+                android:textColor="#795548"
+                android:background="@android:color/transparent"/>
+
         </RelativeLayout>
     </android.support.v7.widget.CardView>
 </LinearLayout>
