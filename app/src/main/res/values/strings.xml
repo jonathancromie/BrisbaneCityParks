@@ -7,4 +7,19 @@
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
+    <string-array name="color_array">
+        <item>#C2185B</item>
+        <item>#E91E63</item>
+        <item>#E64A19</item>
+        <item>#FF5722</item>
+        <item>#FFA000</item>
+        <item>#FFC107</item>
+        <item>#689F38</item>
+        <item>#8BC34A</item>
+        <item>#1976D2</item>
+        <item>#2196F3</item>
+        <item>#512DA8</item>
+        <item>#673AB7</item>
+    </string-array>
+
 </resources>

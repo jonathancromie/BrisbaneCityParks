@@ -1,5 +1,6 @@
 package com.jonathancromie.brisbanecityparks;
 
+import android.graphics.Color;
 import android.support.v7.util.SortedList;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -16,9 +17,6 @@ import java.util.List;
  * Created by Jonathan on 11/28/2015.
  */
 public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder> {
-
-//    private SortedList<Parks> parks;
-
     public static class ParkViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
         TextView parkName;
@@ -28,9 +26,9 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
 
         ParkViewHolder(View itemView) {
             super(itemView);
-            cardView = (CardView)itemView.findViewById(R.id.cardView);
-            parkName = (TextView)itemView.findViewById(R.id.parkName);
-            parkStreet = (TextView)itemView.findViewById(R.id.parkStreet);
+            cardView = (CardView) itemView.findViewById(R.id.cardView);
+            parkName = (TextView) itemView.findViewById(R.id.parkName);
+            parkStreet = (TextView) itemView.findViewById(R.id.parkStreet);
             parkSuburb = (TextView) itemView.findViewById(R.id.parkSuburb);
             parkDistance = (TextView) itemView.findViewById(R.id.parkDistance);
         }
@@ -40,7 +38,6 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
     LayoutInflater layoutInflater;
     ParkAdapter(LayoutInflater layoutInflater, List<Parks> items){
         this.layoutInflater = layoutInflater;
-//        this.parks = parks;
         this.parks = new SortedList<Parks>(Parks.class, new SortedListAdapterCallback<Parks>(this) {
             @Override
             public int compare(Parks park1, Parks park2) {
@@ -87,7 +84,18 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
         holder.parkSuburb.setText(parks.get(position).suburb);
         int distance = (int) parks.get(position).distance;
         holder.parkDistance.setText(distanceToString(distance));
+
+        String[] colors = holder.itemView.getResources().getStringArray(R.array.color_array);
+//        holder.cardView.setCardBackgroundColor(Color.parseColor(colors[position]));
+//        for (int i = 0; i < colors.length; i++) {
+//            holder.cardView.setCardBackgroundColor(Color.parseColor(colors[i]));
+//        }
     }
+
+//    private int setColor() {
+//
+//
+//    }
 
     @Override
     public int getItemCount() {
@@ -102,4 +110,6 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
     private String distanceToString(double distance) {
         return String.valueOf(distance / 1000) + " km";
     }
+
+
 }

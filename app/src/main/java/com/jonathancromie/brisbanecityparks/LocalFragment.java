@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -76,6 +77,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
     public boolean bAuthenticating = false;
     public final Object mAuthenticationLock = new Object();
 
+
     public LocalFragment() {
 
     }
@@ -115,7 +117,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
 //
         parks = new ArrayList<Parks>();
         parkAdapter = new ParkAdapter(getActivity().getLayoutInflater(), parks);
-        RecyclerView recyclerView = (RecyclerView)rootView.findViewById(R.id.recyclerView);
+        recyclerView = (RecyclerView)rootView.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(parkAdapter);
 
         mProgressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
@@ -289,7 +291,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                 try {
 //	                final MobileServiceList<Parks> result = parksTable.where().field("complete").eq(false).execute().get();
 //                    final MobileServiceList<Parks> result = parksTable.where().field("active").eq(true).execute().get();
-                    final MobileServiceList<Parks> result = parksTable.execute().get();
+                    final MobileServiceList<Parks> result = parksTable.top(12).execute().get();
                     getActivity().runOnUiThread(new Runnable() {
 
                         @Override
