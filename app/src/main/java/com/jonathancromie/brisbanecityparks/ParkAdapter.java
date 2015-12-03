@@ -58,7 +58,9 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
             FragmentManager fragmentManager = activity.getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.content_frame, parkFragment);
+            fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
+
             ((FragmentActivity) itemView.getContext()).setTitle(parkName.getText());
 
 
