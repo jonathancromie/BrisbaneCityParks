@@ -1,6 +1,10 @@
 package com.jonathancromie.brisbanecityparks;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.util.SortedList;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -9,8 +13,10 @@ import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -18,6 +24,7 @@ import java.util.List;
  */
 public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder> {
     public static class ParkViewHolder extends RecyclerView.ViewHolder {
+        ImageView parkImage;
         CardView cardView;
         TextView parkName;
         TextView parkStreet;
@@ -27,9 +34,10 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
         ParkViewHolder(View itemView) {
             super(itemView);
             cardView = (CardView) itemView.findViewById(R.id.cardView);
+            parkImage = (ImageView) itemView.findViewById(R.id.parkImage);
             parkName = (TextView) itemView.findViewById(R.id.parkName);
-            parkStreet = (TextView) itemView.findViewById(R.id.parkStreet);
-            parkSuburb = (TextView) itemView.findViewById(R.id.parkSuburb);
+//            parkStreet = (TextView) itemView.findViewById(R.id.parkStreet);
+//            parkSuburb = (TextView) itemView.findViewById(R.id.parkSuburb);
             parkDistance = (TextView) itemView.findViewById(R.id.parkDistance);
         }
     }
@@ -80,22 +88,58 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
     @Override
     public void onBindViewHolder(ParkViewHolder holder, int position) {
         holder.parkName.setText(parks.get(position).name);
-        holder.parkStreet.setText(parks.get(position).street);
-        holder.parkSuburb.setText(parks.get(position).suburb);
+//        holder.parkStreet.setText(parks.get(position).street);
+//        holder.parkSuburb.setText(parks.get(position).suburb);
         int distance = (int) parks.get(position).distance;
         holder.parkDistance.setText(distanceToString(distance));
 
-        String[] colors = holder.itemView.getResources().getStringArray(R.array.color_array);
+//        String[] colors = holder.itemView.getResources().getStringArray(R.array.color_array);
 //        holder.cardView.setCardBackgroundColor(Color.parseColor(colors[position]));
-//        for (int i = 0; i < colors.length; i++) {
-//            holder.cardView.setCardBackgroundColor(Color.parseColor(colors[i]));
-//        }
+
+//        holder.parkImage.setImageBitmap(decodeSampledBitmapFromResource(holder.itemView.getResources(),
+//                R.drawable.park, 100, 100));
+
+
     }
 
-//    private int setColor() {
-//
-//
-//    }
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
+
+    public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+                                                         int reqWidth, int reqHeight) {
+
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeResource(res, resId, options);
+
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeResource(res, resId, options);
+    }
 
     @Override
     public int getItemCount() {
