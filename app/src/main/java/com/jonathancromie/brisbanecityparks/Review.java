@@ -2,6 +2,8 @@ package com.jonathancromie.brisbanecityparks;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 /**
  * Created by Jonathan on 03-Dec-15.
  */
@@ -12,6 +14,11 @@ public class Review {
 
     @SerializedName("comment")
     private String comment;
+
+    // testing purposes
+    private List<Review> reviews;
+
+//    private Date date;
 
     public Review() {
 
@@ -36,5 +43,14 @@ public class Review {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    // testing
+    private void initialiseData() {
+        reviews.add(new Review(5, "great"));
+        reviews.add(new Review(1, "terrible"));
+        reviews.add(new Review(3, "average"));
+        reviews.add(new Review(0, "out of range"));
+        reviews.add(new Review(7, "out of range"));
     }
 }

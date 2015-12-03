@@ -19,6 +19,7 @@ import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
 
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -33,13 +34,11 @@ public class ParkFragment extends Fragment {
     private List<Review> reviews;
     private RecyclerView recyclerView;
     private LinearLayoutManager linearLayoutManager;
-//    private ReviewAdapter reviewAdapter;
+    private ReviewAdapter reviewAdapter;
 
     private MobileServiceClient mClient;
     private ProgressBar mProgressBar;
     private MobileServiceTable<Park> parkTable;
-
-    private TextView textView;
 
     public ParkFragment() {
         // Required empty public constructor
@@ -50,17 +49,17 @@ public class ParkFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_park, container, false);
 
-//        recyclerView = (RecyclerView)rootView.findViewById(R.id.recyclerView);
-//        recyclerView.setHasFixedSize(true);
-//        linearLayoutManager = new LinearLayoutManager(getContext());
-//        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView = (RecyclerView)rootView.findViewById(R.id.recyclerView);
+        recyclerView.setHasFixedSize(true);
+        linearLayoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(linearLayoutManager);
 
-//        reviews = new ArrayList<Review>();
+        reviews = new ArrayList<Review>();
 //        reviewAdapter = new ReviewAdapter(getActivity().getLayoutInflater(), reviews);
-//        recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerView);
-//        recyclerView.setAdapter(reviewAdapter);
+        reviewAdapter = new ReviewAdapter(reviews);
+        recyclerView.setAdapter(reviewAdapter);
 
-        textView = (TextView) rootView.findViewById(R.id.textView);
+//        textView = (TextView) rootView.findViewById(R.id.textView);
 
         try {
             mClient = new MobileServiceClient(
@@ -89,31 +88,35 @@ public class ParkFragment extends Fragment {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    mClient.getTable(Park.class).execute(new TableQueryCallback<Park>() {
-                        @Override
-                        public void onCompleted(List<Park> parks, int totalCount, Exception exception, ServiceFilterResponse response) {
-                            if (exception != null) {
-                                textView.setText("Error: " + exception.toString());
-                            } else {
-                                StringBuilder sb = new StringBuilder();
-//                                sb.append("All parks: size=" + parks.size() + "\n");
-                                for (Park park : parks) {
-                                    String name = park.getName();
-                                    double distance = park.getDistance();
-                                    sb.append("  " + name + " - " + distance + ": ");
-                                    Review[] reviews = park.getReviews();
-                                    for (Review review : reviews) {
-                                        for (int i = 0; i < review.getStars(); i++) {
-                                            sb.append('*');
-                                        }
-                                        sb.append(' ');
-                                    }
-                                    sb.append('\n');
-                                }
-                                textView.setText(sb.toString());
-                            }
-                        }
-                    });
+//                    mClient.getTable(Park.class).execute(new TableQueryCallback<Park>() {
+//                        @Override
+//                        public void onCompleted(List<Park> parks, int totalCount, Exception exception, ServiceFilterResponse response) {
+//                            if (exception != null) {
+//                                textView.setText("Error: " + exception.toString());
+//                            } else {
+//                                StringBuilder sb = new StringBuilder();
+////                                sb.append("All parks: size=" + parks.size() + "\n");
+//                                Review reviewToInsert = new Review(5, "great");
+//                                for (Park park : parks) {
+//                                    String name = park.getName();
+//                                    double distance = park.getDistance();
+////                                    sb.append("  " + name + " - " + distance + ": ");
+//
+//                                    park.setReviews(new Review[]{reviewToInsert});
+//                                    Review[] reviews = park.getReviews();
+//
+//                                    for (Review review : reviews) {
+//                                        for (int i = 0; i < review.getStars(); i++) {
+//                                            sb.append('*');
+//                                        }
+//                                        sb.append(' ');
+//                                    }
+//                                    sb.append('\n');
+//                                }
+//                                textView.setText(sb.toString());
+//                            }
+//                        }
+//                    });
                     getActivity().runOnUiThread(new Runnable() {
 
                         @Override
