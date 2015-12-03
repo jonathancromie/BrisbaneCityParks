@@ -4,25 +4,25 @@
     android:orientation="vertical"
     tools:context="com.jonathancromie.brisbanecityparks.ParkFragment">
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/map"
-        tools:context=".MapsActivity"
-        android:name="com.google.android.gms.maps.SupportMapFragment" />
+        android:layout_height="wrap_content"
+        android:id="@+id/textView"/>
 
-    <!--<RelativeLayout-->
+    <!--<android.support.v7.widget.RecyclerView-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+
+    <!--android:id="@+id/recyclerView" />-->
+
+    <!--<fragment xmlns:android="http://schemas.android.com/apk/res/android"-->
+        <!--xmlns:tools="http://schemas.android.com/tools"-->
         <!--android:layout_width="match_parent"-->
         <!--android:layout_height="match_parent"-->
-        <!--android:layout_alignParentBottom="true">-->
+        <!--android:id="@+id/map"-->
+        <!--tools:context=".MapsActivity"-->
+        <!--android:name="com.google.android.gms.maps.SupportMapFragment" />-->
 
-        <!--<android.support.v7.widget.RecyclerView-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"-->
-
-            <!--android:id="@+id/recyclerView" />-->
-    <!--</RelativeLayout>-->
 
 
 

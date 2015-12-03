@@ -5,9 +5,10 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.util.SortedList;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -53,15 +54,13 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
         }
 
         public void explore() {
-            Fragment parkFragment = new Fragment();
-            FragmentActivity activity = (FragmentActivity)itemView.getContext();
-            FragmentManager fragmentManager = activity.getSupportFragmentManager();
+            FragmentManager fragmentManager = ((AppCompatActivity) itemView.getContext()).getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.content_frame, parkFragment);
+            ParkFragment fragment = new ParkFragment();
+            fragmentTransaction.replace(R.id.content_frame, fragment);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
-
-            ((FragmentActivity) itemView.getContext()).setTitle(parkName.getText());
+//            fragment.getActivity().setTitle(parkName.getText().toString());
 
 
         }

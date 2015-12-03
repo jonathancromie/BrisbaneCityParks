@@ -7,8 +7,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -42,13 +40,13 @@ import java.util.List;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.widget.Button;
 import android.widget.ProgressBar;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutionException;
 
 import com.microsoft.windowsazure.mobileservices.MobileServiceException;
+import com.microsoft.windowsazure.mobileservices.table.query.QueryOrder;
 
 public class LocalFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -65,7 +63,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
     private ParkAdapter parkAdapter;
 
     private MobileServiceClient mClient;
-    private MobileServiceTable<Park> parksTable;
+    private MobileServiceTable<Park> parkTable;
 
     private LocationManager locationManager;
     private LocationListener locationListener;
@@ -131,7 +129,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                     .withFilter(new ProgressFilter())
                     .withFilter(new RefreshTokenCacheFilter());
 
-//            parksTable = mClient.getTable(Park.class);
+//            parkTable = mClient.getTable(Park.class);
         } catch (MalformedURLException e) {
             createAndShowDialog(new Exception("Error creating the Mobile Service. " +
                     "Verify the URL"), "Error");
@@ -195,7 +193,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
     private void createTable() {
 
         // Get the Mobile Service Table instance to use
-        parksTable = mClient.getTable(Park.class);
+        parkTable = mClient.getTable(Park.class);
 
 //        mTextNewToDo = (EditText) findViewById(R.id.textNewToDo);
 
@@ -288,8 +286,8 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    final MobileServiceList<Park> result = parksTable.top(12).execute().get();
-//                    final MobileServiceList<Park> result = parksTable.top(1000)..execute().get();
+                    final MobileServiceList<Park> result = parkTable.execute().get();
+//                    final MobileServiceList<Park> result = parkTable.top(1000)..execute().get();
                     getActivity().runOnUiThread(new Runnable() {
 
                         @Override
@@ -301,7 +299,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                             for (final Park park : result) {
 
                                 LatLng parkLocation = new LatLng(park.latitude, park.longitude);
-                                park.distance = SphericalUtil.computeDistanceBetween(userLocation, parkLocation);
+                                park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
                                 parks.add(park);
                                 counter++;
 
