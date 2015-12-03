@@ -1,23 +1,19 @@
 package com.jonathancromie.brisbanecityparks;
 
-import android.app.Activity;
-import android.app.Dialog;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.CardView;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.ListView;
 import android.app.AlertDialog;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -46,6 +42,7 @@ import java.util.List;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.widget.Button;
 import android.widget.ProgressBar;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,13 +56,16 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
     public static final String USERIDPREF = "uid";
     public static final String TOKENPREF = "tkn";
 
-    private List<Parks> parks;
+    private static final String MOBILE_SERVICE_URL = "https://brisbanecityparks.azure-mobile.net/";
+    private static final String MOBILE_SERICE_KEY = "zekjnWkJSxVYLuumxxydGozfpOSlBn97";
+
+    private List<Park> parks;
     private RecyclerView recyclerView;
     private LinearLayoutManager linearLayoutManager;
     private ParkAdapter parkAdapter;
 
     private MobileServiceClient mClient;
-    private MobileServiceTable<Parks> parksTable;
+    private MobileServiceTable<Park> parksTable;
 
     private LocationManager locationManager;
     private LocationListener locationListener;
@@ -76,7 +76,6 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
 
     public boolean bAuthenticating = false;
     public final Object mAuthenticationLock = new Object();
-
 
     public LocalFragment() {
 
@@ -115,7 +114,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
         linearLayoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(linearLayoutManager);
 //
-        parks = new ArrayList<Parks>();
+        parks = new ArrayList<Park>();
         parkAdapter = new ParkAdapter(getActivity().getLayoutInflater(), parks);
         recyclerView = (RecyclerView)rootView.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(parkAdapter);
@@ -127,12 +126,12 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
 
         try {
             mClient = new MobileServiceClient(
-                    "https://brisbanecityparks.azure-mobile.net/",
-                    "zekjnWkJSxVYLuumxxydGozfpOSlBn97", getContext())
+                    MOBILE_SERVICE_URL,
+                    MOBILE_SERICE_KEY, getContext())
                     .withFilter(new ProgressFilter())
                     .withFilter(new RefreshTokenCacheFilter());
 
-//            parksTable = mClient.getTable(Parks.class);
+//            parksTable = mClient.getTable(Park.class);
         } catch (MalformedURLException e) {
             createAndShowDialog(new Exception("Error creating the Mobile Service. " +
                     "Verify the URL"), "Error");
@@ -196,7 +195,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
     private void createTable() {
 
         // Get the Mobile Service Table instance to use
-        parksTable = mClient.getTable(Parks.class);
+        parksTable = mClient.getTable(Park.class);
 
 //        mTextNewToDo = (EditText) findViewById(R.id.textNewToDo);
 
@@ -289,19 +288,17 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-//	                final MobileServiceList<Parks> result = parksTable.where().field("complete").eq(false).execute().get();
-//                    final MobileServiceList<Parks> result = parksTable.where().field("active").eq(true).execute().get();
-                    final MobileServiceList<Parks> result = parksTable.top(12).execute().get();
+                    final MobileServiceList<Park> result = parksTable.top(12).execute().get();
+//                    final MobileServiceList<Park> result = parksTable.top(1000)..execute().get();
                     getActivity().runOnUiThread(new Runnable() {
 
                         @Override
                         public void run() {
-//	                        parkAdapter.clear();
                             locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
                             LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
 
                             int counter = 0;
-                            for (final Parks park : result) {
+                            for (final Park park : result) {
 
                                 LatLng parkLocation = new LatLng(park.latitude, park.longitude);
                                 park.distance = SphericalUtil.computeDistanceBetween(userLocation, parkLocation);
@@ -310,7 +307,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
 
                             }
 
-                            for (Parks park : parks) {
+                            for (Park park : parks) {
                                 parkAdapter.addPark(park);
                                 parkAdapter.notifyItemInserted(parkAdapter.parks.size() - 1);
                             }

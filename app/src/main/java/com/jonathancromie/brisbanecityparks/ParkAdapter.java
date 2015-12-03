@@ -1,22 +1,24 @@
 package com.jonathancromie.brisbanecityparks;
 
+import android.support.v4.app.FragmentManager;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.util.SortedList;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.util.SortedListAdapterCallback;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -30,6 +32,8 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
         TextView parkStreet;
         TextView parkSuburb;
         TextView parkDistance;
+        Button explore;
+        Button share;
 
         ParkViewHolder(View itemView) {
             super(itemView);
@@ -39,16 +43,35 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
 //            parkStreet = (TextView) itemView.findViewById(R.id.parkStreet);
 //            parkSuburb = (TextView) itemView.findViewById(R.id.parkSuburb);
             parkDistance = (TextView) itemView.findViewById(R.id.parkDistance);
+            explore = (Button) itemView.findViewById(R.id.explore);
+            explore.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    explore();
+                }
+            });
+        }
+
+        public void explore() {
+            Fragment parkFragment = new Fragment();
+            FragmentActivity activity = (FragmentActivity)itemView.getContext();
+            FragmentManager fragmentManager = activity.getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.content_frame, parkFragment);
+            fragmentTransaction.commit();
+            ((FragmentActivity) itemView.getContext()).setTitle(parkName.getText());
+
+
         }
     }
 
-    SortedList<Parks> parks;
+    SortedList<Park> parks;
     LayoutInflater layoutInflater;
-    ParkAdapter(LayoutInflater layoutInflater, List<Parks> items){
+    ParkAdapter(LayoutInflater layoutInflater, List<Park> items){
         this.layoutInflater = layoutInflater;
-        this.parks = new SortedList<Parks>(Parks.class, new SortedListAdapterCallback<Parks>(this) {
+        this.parks = new SortedList<Park>(Park.class, new SortedListAdapterCallback<Park>(this) {
             @Override
-            public int compare(Parks park1, Parks park2) {
+            public int compare(Park park1, Park park2) {
                 if (park1.distance < park2.distance) {
                     return -1;
                 }
@@ -59,22 +82,22 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
             }
 
             @Override
-            public boolean areContentsTheSame(Parks oldItem, Parks newItem) {
+            public boolean areContentsTheSame(Park oldItem, Park newItem) {
                 return false;
             }
 
             @Override
-            public boolean areItemsTheSame(Parks item1, Parks item2) {
+            public boolean areItemsTheSame(Park item1, Park item2) {
                 return false;
             }
         });
 
-        for (Parks park : items) {
+        for (Park park : items) {
             parks.add(park);
         }
     }
 
-    public void addPark(Parks park) {
+    public void addPark(Park park) {
         parks.add(park);
     }
 
@@ -154,6 +177,4 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
     private String distanceToString(double distance) {
         return String.valueOf(distance / 1000) + " km";
     }
-
-
 }

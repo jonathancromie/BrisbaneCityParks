@@ -50,13 +50,13 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
     public static final String USERIDPREF = "uid";
     public static final String TOKENPREF = "tkn";
 
-    private List<Parks> parks;
+    private List<Park> parks;
     private RecyclerView recyclerView;
     private LinearLayoutManager linearLayoutManager;
     private ParkAdapter parkAdapter;
 
     private MobileServiceClient mClient;
-    private MobileServiceTable<Parks> parksTable;
+    private MobileServiceTable<Park> parksTable;
 
     private LocationManager locationManager;
     private LocationListener locationListener;
@@ -105,7 +105,7 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
         linearLayoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(linearLayoutManager);
 //
-        parks = new ArrayList<Parks>();
+        parks = new ArrayList<Park>();
         parkAdapter = new ParkAdapter(getActivity().getLayoutInflater(), parks);
         recyclerView = (RecyclerView)rootView.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(parkAdapter);
@@ -121,7 +121,7 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
                     "zekjnWkJSxVYLuumxxydGozfpOSlBn97", getContext())
                     .withFilter(new ProgressFilter());
 
-//            parksTable = mClient.getTable(Parks.class);
+//            parksTable = mClient.getTable(Park.class);
         } catch (MalformedURLException e) {
             createAndShowDialog(new Exception("Error creating the Mobile Service. " +
                     "Verify the URL"), "Error");
@@ -185,7 +185,7 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
     private void createTable() {
 
         // Get the Mobile Service Table instance to use
-        parksTable = mClient.getTable(Parks.class);
+        parksTable = mClient.getTable(Park.class);
 
 //        mTextNewToDo = (EditText) findViewById(R.id.textNewToDo);
 
@@ -278,9 +278,9 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-//	                final MobileServiceList<Parks> result = parksTable.where().field("complete").eq(false).execute().get();
-//                    final MobileServiceList<Parks> result = parksTable.where().field("active").eq(true).execute().get();
-                    final MobileServiceList<Parks> result = parksTable.top(12).execute().get();
+//	                final MobileServiceList<Park> result = parksTable.where().field("complete").eq(false).execute().get();
+//                    final MobileServiceList<Park> result = parksTable.where().field("active").eq(true).execute().get();
+                    final MobileServiceList<Park> result = parksTable.top(12).execute().get();
                     getActivity().runOnUiThread(new Runnable() {
 
                         @Override
@@ -290,7 +290,7 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
                             LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
 
                             int counter = 0;
-                            for (final Parks park : result) {
+                            for (final Park park : result) {
 
                                 LatLng parkLocation = new LatLng(park.latitude, park.longitude);
                                 park.distance = SphericalUtil.computeDistanceBetween(userLocation, parkLocation);
@@ -299,7 +299,7 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
 
                             }
 
-                            for (Parks park : parks) {
+                            for (Park park : parks) {
                                 parkAdapter.addPark(park);
                                 parkAdapter.notifyItemInserted(parkAdapter.parks.size() - 1);
                             }
