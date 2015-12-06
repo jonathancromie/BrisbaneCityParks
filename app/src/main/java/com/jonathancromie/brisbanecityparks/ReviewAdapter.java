@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,8 +29,20 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
     }
 
     List<Review> reviews;
-    ReviewAdapter(List<Review> reviews) {
-        this.reviews = reviews;
+    LayoutInflater layoutInflater;
+    ReviewAdapter(LayoutInflater layoutInflater, List<Review> items){
+        this.layoutInflater = layoutInflater;
+        this.reviews = new ArrayList<Review>();
+
+        addReview(new Review(5, "Great"));
+
+//        for (Review review : reviews) {
+//            reviews.add(review);
+//        }
+    }
+
+    public void addReview(Review review) {
+        reviews.add(review);
     }
     @Override
     public ReviewViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

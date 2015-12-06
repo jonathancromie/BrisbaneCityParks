@@ -4,7 +4,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.annotations.SerializedName;
 import com.google.maps.android.SphericalUtil;
 
+import java.lang.reflect.Array;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 
 /**
  * Created by Jonathan on 11/28/2015.

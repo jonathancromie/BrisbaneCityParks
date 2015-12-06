@@ -1,5 +1,6 @@
 package com.jonathancromie.brisbanecityparks;
 
+import android.content.SharedPreferences;
 import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.content.res.Resources;
@@ -116,6 +117,13 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
 //        holder.parkSuburb.setText(parks.get(position).suburb);
         int distance = (int) parks.get(position).distance;
         holder.parkDistance.setText(distanceToString(distance));
+
+//        SharedPreferences sharedPreferences = holder.itemView.getContext().getSharedPreferences(Constants.SHAREDPREFFILE, Context.MODE_PRIVATE);
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        int id = parks.get(position).id;
+//        editor.putInt("parkId", id);
+//        editor.commit();
+
 
 //        String[] colors = holder.itemView.getResources().getStringArray(R.array.color_array);
 //        holder.cardView.setCardBackgroundColor(Color.parseColor(colors[position]));

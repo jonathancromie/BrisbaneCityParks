@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                 fragmentClass = WhatsHotFragment.class;
                 break;
             case R.id.trending_fragment:
-//                fragmentClass = TrendingFragment.class;
+                fragmentClass = TrendingFragment.class;
                 break;
             default:
                 fragmentClass = LocalFragment.class;

@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import com.google.maps.android.SphericalUtil;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceList;
+import com.microsoft.windowsazure.mobileservices.ServiceFilterResponseCallback;
 import com.microsoft.windowsazure.mobileservices.UserAuthenticationCallback;
 import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceAuthenticationProvider;
 import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceUser;
@@ -46,13 +48,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutionException;
 
 import com.microsoft.windowsazure.mobileservices.MobileServiceException;
+import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
 import com.microsoft.windowsazure.mobileservices.table.query.QueryOrder;
 
 public class LocalFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-
-    public static final String SHAREDPREFFILE = "temp";
-    public static final String USERIDPREF = "uid";
-    public static final String TOKENPREF = "tkn";
 
     private static final String MOBILE_SERVICE_URL = "https://brisbanecityparks.azure-mobile.net/";
     private static final String MOBILE_SERICE_KEY = "zekjnWkJSxVYLuumxxydGozfpOSlBn97";
@@ -135,6 +134,29 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                     "Verify the URL"), "Error");
         }
 
+        mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
+        mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
+        mClient.withFilter(new ServiceFilter() {
+            @Override
+            public ListenableFuture<ServiceFilterResponse> handleRequest(final ServiceFilterRequest request, NextServiceFilterCallback nextServiceFilterCallback) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        request.addHeader("My-Header", "value");
+                    }
+                });
+
+                SettableFuture<ServiceFilterResponse> result = SettableFuture.create();
+                try {
+                    ServiceFilterResponse response = nextServiceFilterCallback.onNext(request).get();
+                    result.set(response);
+                } catch (Exception exc) {
+                    result.setException(exc);
+                }
+                return null;
+            }
+        });
+
         // Load the items from the Mobile Service
 //        refreshItemsFromTable();
         authenticate(false);
@@ -193,7 +215,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
     private void createTable() {
 
         // Get the Mobile Service Table instance to use
-        parkTable = mClient.getTable(Park.class);
+        parkTable = mClient.getTable("park", Park.class);
 
 //        mTextNewToDo = (EditText) findViewById(R.id.textNewToDo);
 
@@ -206,20 +228,20 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
 
     private void cacheUserToken(MobileServiceUser user)
     {
-        SharedPreferences prefs = getActivity().getSharedPreferences(SHAREDPREFFILE, Context.MODE_PRIVATE);
+        SharedPreferences prefs = getActivity().getSharedPreferences(Constants.SHAREDPREFFILE, Context.MODE_PRIVATE);
         Editor editor = prefs.edit();
-        editor.putString(USERIDPREF, user.getUserId());
-        editor.putString(TOKENPREF, user.getAuthenticationToken());
+        editor.putString(Constants.USERIDPREF, user.getUserId());
+        editor.putString(Constants.TOKENPREF, user.getAuthenticationToken());
         editor.commit();
     }
 
     private boolean loadUserTokenCache(MobileServiceClient client)
     {
-        SharedPreferences prefs = getActivity().getSharedPreferences(SHAREDPREFFILE, Context.MODE_PRIVATE);
-        String userId = prefs.getString(USERIDPREF, "undefined");
+        SharedPreferences prefs = getActivity().getSharedPreferences(Constants.SHAREDPREFFILE, Context.MODE_PRIVATE);
+        String userId = prefs.getString(Constants.USERIDPREF, "undefined");
         if (userId == "undefined")
             return false;
-        String token = prefs.getString(TOKENPREF, "undefined");
+        String token = prefs.getString(Constants.TOKENPREF, "undefined");
         if (token == "undefined")
             return false;
 
@@ -286,8 +308,8 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
             @Override
             protected Void doInBackground(Void... params) {
                 try {
+//                    final MobileServiceList<Park> result = parkTable.execute().get();
                     final MobileServiceList<Park> result = parkTable.execute().get();
-//                    final MobileServiceList<Park> result = parkTable.top(1000)..execute().get();
                     getActivity().runOnUiThread(new Runnable() {
 
                         @Override
@@ -313,6 +335,43 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
 
                         }
                     });
+
+//                    parkTable.execute(new TableQueryCallback<Park>() {
+//                        @Override
+//                        public void onCompleted(final List<Park> result, int count, Exception exception, ServiceFilterResponse response) {
+//                            if (exception != null) {
+//                                createAndShowDialog(exception, "Error");
+//                            }
+//                            else {
+//                                getActivity().runOnUiThread(new Runnable() {
+//
+//                                    @Override
+//                                    public void run() {
+//                                        locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
+//                                        LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+//
+//                                        int counter = 0;
+//                                        for (final Park park : result) {
+//
+//                                            LatLng parkLocation = new LatLng(park.latitude, park.longitude);
+//                                            park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
+//                                            parks.add(park);
+//                                            counter++;
+//
+//                                        }
+//
+//                                        for (Park park : parks) {
+//                                            parkAdapter.addPark(park);
+//                                            parkAdapter.notifyItemInserted(parkAdapter.parks.size() - 1);
+//                                        }
+//
+//
+//                                    }
+//                                });
+//                            }
+//                        }
+//                    });
+
                 } catch (Exception exception) {
 	                createAndShowDialog(exception, "Error");
                 }

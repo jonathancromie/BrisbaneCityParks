@@ -2,18 +2,30 @@ package com.jonathancromie.brisbanecityparks;
 
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.v4.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.maps.android.SphericalUtil;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.microsoft.windowsazure.mobileservices.MobileServiceException;
+import com.microsoft.windowsazure.mobileservices.MobileServiceList;
+import com.microsoft.windowsazure.mobileservices.ServiceFilterResponseCallback;
+import com.microsoft.windowsazure.mobileservices.http.NextServiceFilterCallback;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilter;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilterRequest;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
@@ -55,11 +67,8 @@ public class ParkFragment extends Fragment {
         recyclerView.setLayoutManager(linearLayoutManager);
 
         reviews = new ArrayList<Review>();
-//        reviewAdapter = new ReviewAdapter(getActivity().getLayoutInflater(), reviews);
-        reviewAdapter = new ReviewAdapter(reviews);
+        reviewAdapter = new ReviewAdapter(getActivity().getLayoutInflater(), reviews);
         recyclerView.setAdapter(reviewAdapter);
-
-//        textView = (TextView) rootView.findViewById(R.id.textView);
 
         try {
             mClient = new MobileServiceClient(
@@ -72,8 +81,11 @@ public class ParkFragment extends Fragment {
                     "Verify the URL"), "Error");
         }
 
+        mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
+        mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
+
         // Get the Mobile Service Table instance to use
-        parkTable = mClient.getTable(Park.class);
+        parkTable = mClient.getTable("park", Park.class);
 
         // Load the items from the Mobile Service
         refreshItemsFromTable();
@@ -88,47 +100,24 @@ public class ParkFragment extends Fragment {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-//                    mClient.getTable(Park.class).execute(new TableQueryCallback<Park>() {
-//                        @Override
-//                        public void onCompleted(List<Park> parks, int totalCount, Exception exception, ServiceFilterResponse response) {
-//                            if (exception != null) {
-//                                textView.setText("Error: " + exception.toString());
-//                            } else {
-//                                StringBuilder sb = new StringBuilder();
-////                                sb.append("All parks: size=" + parks.size() + "\n");
-//                                Review reviewToInsert = new Review(5, "great");
-//                                for (Park park : parks) {
-//                                    String name = park.getName();
-//                                    double distance = park.getDistance();
-////                                    sb.append("  " + name + " - " + distance + ": ");
-//
-//                                    park.setReviews(new Review[]{reviewToInsert});
-//                                    Review[] reviews = park.getReviews();
-//
-//                                    for (Review review : reviews) {
-//                                        for (int i = 0; i < review.getStars(); i++) {
-//                                            sb.append('*');
-//                                        }
-//                                        sb.append(' ');
-//                                    }
-//                                    sb.append('\n');
-//                                }
-//                                textView.setText(sb.toString());
-//                            }
-//                        }
-//                    });
+                    final MobileServiceList<Park> parks = parkTable.execute().get();
                     getActivity().runOnUiThread(new Runnable() {
 
                         @Override
                         public void run() {
-
-
-
+                            for (Park park : parks) {
+                                Review[] reviews = park.getReviews();
+                                for (Review review : reviews) {
+                                    reviewAdapter.addReview(review);
+                                }
+                            }
                         }
                     });
-                } catch (Exception exception) {
-                    createAndShowDialog(exception, "Error");
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+
+
                 return null;
             }
         }.execute();
