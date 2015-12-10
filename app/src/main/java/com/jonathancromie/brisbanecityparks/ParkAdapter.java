@@ -1,6 +1,9 @@
 package com.jonathancromie.brisbanecityparks;
 
 import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.content.res.Resources;
@@ -21,6 +24,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,6 +40,8 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
         TextView parkDistance;
         Button explore;
         Button share;
+
+        private int parkId;
 
         ParkViewHolder(View itemView) {
             super(itemView);
@@ -58,6 +64,11 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
             FragmentManager fragmentManager = ((AppCompatActivity) itemView.getContext()).getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             ParkFragment fragment = new ParkFragment();
+            Bundle bundle = new Bundle();
+
+            bundle.putInt("parkId", parkId);
+
+            fragment.setArguments(bundle);
             fragmentTransaction.replace(R.id.content_frame, fragment);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
@@ -118,11 +129,7 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
         int distance = (int) parks.get(position).distance;
         holder.parkDistance.setText(distanceToString(distance));
 
-//        SharedPreferences sharedPreferences = holder.itemView.getContext().getSharedPreferences(Constants.SHAREDPREFFILE, Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        int id = parks.get(position).id;
-//        editor.putInt("parkId", id);
-//        editor.commit();
+        holder.parkId = parks.get(position).getId();
 
 
 //        String[] colors = holder.itemView.getResources().getStringArray(R.array.color_array);

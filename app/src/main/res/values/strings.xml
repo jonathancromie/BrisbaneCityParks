@@ -3,6 +3,9 @@
     <string name="action_settings">Settings</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
+    <string name="local">Local Parks</string>
+    <string name="whatshot">What\'s Hot</string>
+    <string name="trending">Trending Parks</string>
 
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

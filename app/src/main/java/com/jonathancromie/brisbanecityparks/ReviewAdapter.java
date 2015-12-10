@@ -34,11 +34,11 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         this.layoutInflater = layoutInflater;
         this.reviews = new ArrayList<Review>();
 
-        addReview(new Review(5, "Great"));
+//        addReview(new Review("2", 5, "Great"));
 
-//        for (Review review : reviews) {
-//            reviews.add(review);
-//        }
+        for (Review review : items) {
+            reviews.add(review);
+        }
     }
 
     public void addReview(Review review) {
@@ -53,7 +53,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
     @Override
     public void onBindViewHolder(ReviewViewHolder holder, int position) {
-        holder.stars.setText(reviews.get(position).getStars());
+        holder.stars.setText(String.valueOf(reviews.get(position).getStars()) + " stars");
         holder.comment.setText(reviews.get(position).getComment());
 
     }

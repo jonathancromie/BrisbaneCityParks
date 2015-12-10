@@ -8,7 +8,7 @@
                     android:actionLayout="@layout/fragment_local"
                     android:checked="true"
                     android:icon="@drawable/ic_near_me_black_24px"
-                    android:title="Local"/>
+                    android:title="Local Parks"/>
                 <item
                     android:id="@+id/whats_hot_fragment"
                     android:icon="@drawable/ic_whatshot_black_24px"

@@ -2,30 +2,18 @@ package com.jonathancromie.brisbanecityparks;
 
 
 import android.app.AlertDialog;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.support.v4.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.maps.android.SphericalUtil;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceException;
-import com.microsoft.windowsazure.mobileservices.MobileServiceList;
-import com.microsoft.windowsazure.mobileservices.ServiceFilterResponseCallback;
-import com.microsoft.windowsazure.mobileservices.http.NextServiceFilterCallback;
-import com.microsoft.windowsazure.mobileservices.http.ServiceFilter;
-import com.microsoft.windowsazure.mobileservices.http.ServiceFilterRequest;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
@@ -33,7 +21,6 @@ import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
-
 
 /**
  * A simple {@link Fragment} subclass.
@@ -51,6 +38,9 @@ public class ParkFragment extends Fragment {
     private MobileServiceClient mClient;
     private ProgressBar mProgressBar;
     private MobileServiceTable<Park> parkTable;
+    private MobileServiceTable<Review> reviewTable;
+
+    private int id;
 
     public ParkFragment() {
         // Required empty public constructor
@@ -81,11 +71,10 @@ public class ParkFragment extends Fragment {
                     "Verify the URL"), "Error");
         }
 
-        mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
-        mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
-
         // Get the Mobile Service Table instance to use
         parkTable = mClient.getTable("park", Park.class);
+//        reviewTable = mClient.getTable("review", Review.class);
+
 
         // Load the items from the Mobile Service
         refreshItemsFromTable();
@@ -100,27 +89,59 @@ public class ParkFragment extends Fragment {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    final MobileServiceList<Park> parks = parkTable.execute().get();
-                    getActivity().runOnUiThread(new Runnable() {
+                    parkTable.top(10).execute(new TableQueryCallback<Park>() {
 
                         @Override
-                        public void run() {
-                            for (Park park : parks) {
-                                Review[] reviews = park.getReviews();
-                                for (Review review : reviews) {
-                                    reviewAdapter.addReview(review);
-                                }
+                        public void onCompleted(final List<Park> parks, int count, Exception exception, ServiceFilterResponse response) {
+                            serialise();
+                            if (exception != null) {
+                                createAndShowDialog(exception, "Error");
+                            }
+                            else {
+                                getActivity().runOnUiThread(new Runnable() {
+
+                                    @Override
+                                    public void run() {
+                                        StringBuilder sb = new StringBuilder();
+                                        for (Park park : parks) {
+                                            int parkId = getArguments().getInt("parkId");
+                                            if (parkId != park.getId()) {
+                                            }
+                                            else {
+                                                String name = park.getName();
+                                                String street = park.getStreet();
+                                                String suburb = park.getSuburb();
+
+                                                getActivity().setTitle(name);
+                                                Review[] reviews = park.getReviews();
+                                                for (Review review : reviews) {
+//                                                    for (int i = 0; i < review.getStars(); i++) {
+//
+//                                                    }
+                                                    reviewAdapter.addReview(review);
+                                                    reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
+                                                }
+                                            }
+
+                                        }
+
+                                    }
+                                });
                             }
                         }
                     });
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception exception) {
+                    createAndShowDialog(exception, "Error");
                 }
-
 
                 return null;
             }
         }.execute();
+    }
+
+    private void serialise() {
+        mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
+        mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
     }
 
     /**

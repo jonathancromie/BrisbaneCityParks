@@ -54,12 +54,14 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        if (savedInstanceState == null) {
-            LocalFragment fragment = new LocalFragment();
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().add(R.id.content_frame, fragment).commit();
-            setTitle("Local");
-        }
+//        if (savedInstanceState == null) {
+//            LocalFragment fragment = new LocalFragment();
+//            FragmentManager fragmentManager = getSupportFragmentManager();
+//            fragmentManager.beginTransaction().add(R.id.content_frame, fragment).commit();
+//            setTitle("Local Parks");
+//        }
+
+
 
         try {
             mClient = new MobileServiceClient(
@@ -164,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                 fragmentClass = WhatsHotFragment.class;
                 break;
             case R.id.trending_fragment:
-                fragmentClass = TrendingFragment.class;
+//                fragmentClass = TrendingFragment.class;
                 break;
             default:
                 fragmentClass = LocalFragment.class;

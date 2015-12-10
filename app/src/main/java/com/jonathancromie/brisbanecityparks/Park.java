@@ -46,16 +46,18 @@ public class Park {
     }
 
     public Park(int id, String park_code, String name, String street, String suburb, String easting, String northing, double latitude, double longitude, double distance) {
-        this.id = id;
-        this.park_code = park_code;
-        this.name = name;
-        this.street = street;
-        this.suburb = suburb;
-        this.easting = easting;
-        this.northing = northing;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.distance = distance;
+        setId(id);
+        setParkCode(park_code);
+        setName(name);
+        setStreet(street);
+        setSuburb(suburb);
+        setEasting(easting);
+        setNorthing(northing);
+        setLatitude(latitude);
+        setLongitude(longitude);
+        setDistance(distance);
+        setReviews(new Review[0]);
+
     }
 
     public int getId() {
@@ -66,11 +68,11 @@ public class Park {
         this.id = id;
     }
 
-    public String getPark_code() {
+    public String getParkCode() {
         return park_code;
     }
 
-    public void setPark_code(String park_code) {
+    public void setParkCode(String park_code) {
         this.park_code = park_code;
     }
 

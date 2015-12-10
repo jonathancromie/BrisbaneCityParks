@@ -134,6 +134,12 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
         return rootView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        getActivity().setTitle(R.string.whatshot);
+    }
+
     /**
      * Authenticates with the desired login provider. Also caches the token.
      *

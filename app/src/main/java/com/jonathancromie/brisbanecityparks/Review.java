@@ -9,14 +9,13 @@ import java.util.List;
  */
 public class Review {
 
-    @SerializedName("starts")
+    @SerializedName("id")
+    private String id;
+
     private int stars;
 
     @SerializedName("comment")
     private String comment;
-
-    // testing purposes
-    private List<Review> reviews;
 
 //    private Date date;
 
@@ -24,9 +23,18 @@ public class Review {
 
     }
 
-    public Review(int stars, String comment) {
-        this.stars = stars;
-        this.comment = comment;
+    public Review(String id, int stars, String comment) {
+        setId(id);
+        setStars(stars);
+        setComment(comment);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public int getStars() {
@@ -43,14 +51,5 @@ public class Review {
 
     public void setComment(String comment) {
         this.comment = comment;
-    }
-
-    // testing
-    private void initialiseData() {
-        reviews.add(new Review(5, "great"));
-        reviews.add(new Review(1, "terrible"));
-        reviews.add(new Review(3, "average"));
-        reviews.add(new Review(0, "out of range"));
-        reviews.add(new Review(7, "out of range"));
     }
 }

@@ -54,7 +54,7 @@ import com.microsoft.windowsazure.mobileservices.table.query.QueryOrder;
 public class LocalFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String MOBILE_SERVICE_URL = "https://brisbanecityparks.azure-mobile.net/";
-    private static final String MOBILE_SERICE_KEY = "zekjnWkJSxVYLuumxxydGozfpOSlBn97";
+    private static final String MOBILE_SERVICE_KEY = "zekjnWkJSxVYLuumxxydGozfpOSlBn97";
 
     private List<Park> parks;
     private RecyclerView recyclerView;
@@ -124,7 +124,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
         try {
             mClient = new MobileServiceClient(
                     MOBILE_SERVICE_URL,
-                    MOBILE_SERICE_KEY, getContext())
+                    MOBILE_SERVICE_KEY, getContext())
                     .withFilter(new ProgressFilter())
                     .withFilter(new RefreshTokenCacheFilter());
 
@@ -134,34 +134,17 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                     "Verify the URL"), "Error");
         }
 
-        mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
-        mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
-        mClient.withFilter(new ServiceFilter() {
-            @Override
-            public ListenableFuture<ServiceFilterResponse> handleRequest(final ServiceFilterRequest request, NextServiceFilterCallback nextServiceFilterCallback) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        request.addHeader("My-Header", "value");
-                    }
-                });
-
-                SettableFuture<ServiceFilterResponse> result = SettableFuture.create();
-                try {
-                    ServiceFilterResponse response = nextServiceFilterCallback.onNext(request).get();
-                    result.set(response);
-                } catch (Exception exc) {
-                    result.setException(exc);
-                }
-                return null;
-            }
-        });
-
         // Load the items from the Mobile Service
 //        refreshItemsFromTable();
         authenticate(false);
 
         return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getActivity().setTitle(R.string.local);
     }
 
     /**
@@ -309,68 +292,66 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
             protected Void doInBackground(Void... params) {
                 try {
 //                    final MobileServiceList<Park> result = parkTable.execute().get();
-                    final MobileServiceList<Park> result = parkTable.execute().get();
-                    getActivity().runOnUiThread(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
-                            LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-
-                            int counter = 0;
-                            for (final Park park : result) {
-
-                                LatLng parkLocation = new LatLng(park.latitude, park.longitude);
-                                park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
-                                parks.add(park);
-                                counter++;
-
-                            }
-
-                            for (Park park : parks) {
-                                parkAdapter.addPark(park);
-                                parkAdapter.notifyItemInserted(parkAdapter.parks.size() - 1);
-                            }
-
-
-                        }
-                    });
-
-//                    parkTable.execute(new TableQueryCallback<Park>() {
+//                    final MobileServiceList<Park> result = parkTable.execute().get();
+//                    getActivity().runOnUiThread(new Runnable() {
+//
 //                        @Override
-//                        public void onCompleted(final List<Park> result, int count, Exception exception, ServiceFilterResponse response) {
-//                            if (exception != null) {
-//                                createAndShowDialog(exception, "Error");
+//                        public void run() {
+//                            locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
+//                            LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+//
+//                            int counter = 0;
+//                            for (final Park park : result) {
+//
+//                                LatLng parkLocation = new LatLng(park.latitude, park.longitude);
+//                                park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
+//                                parks.add(park);
+//                                counter++;
+//
 //                            }
-//                            else {
-//                                getActivity().runOnUiThread(new Runnable() {
 //
-//                                    @Override
-//                                    public void run() {
-//                                        locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
-//                                        LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-//
-//                                        int counter = 0;
-//                                        for (final Park park : result) {
-//
-//                                            LatLng parkLocation = new LatLng(park.latitude, park.longitude);
-//                                            park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
-//                                            parks.add(park);
-//                                            counter++;
-//
-//                                        }
-//
-//                                        for (Park park : parks) {
-//                                            parkAdapter.addPark(park);
-//                                            parkAdapter.notifyItemInserted(parkAdapter.parks.size() - 1);
-//                                        }
-//
-//
-//                                    }
-//                                });
+//                            for (Park park : parks) {
+//                                parkAdapter.addPark(park);
+//                                parkAdapter.notifyItemInserted(parkAdapter.parks.size() - 1);
 //                            }
+//
+//
 //                        }
 //                    });
+
+
+                    parkTable.top(10).execute(new TableQueryCallback<Park>() {
+                        @Override
+                        public void onCompleted(final List<Park> result, int count, Exception exception, ServiceFilterResponse response) {
+                            serialise();
+                            if (exception != null) {
+                                createAndShowDialog(exception, "Error");
+                            }
+                            else {
+                                getActivity().runOnUiThread(new Runnable() {
+
+                                    @Override
+                                    public void run() {
+                                        locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
+                                        LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+
+                                        for (Park park : result) {
+
+                                            LatLng parkLocation = new LatLng(park.latitude, park.longitude);
+                                            park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
+                                            parks.add(park);
+
+                                        }
+
+                                        for (Park park : parks) {
+                                            parkAdapter.addPark(park);
+                                            parkAdapter.notifyItemInserted(parkAdapter.parks.size() - 1);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
 
                 } catch (Exception exception) {
 	                createAndShowDialog(exception, "Error");
@@ -378,6 +359,11 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                 return null;
             }
         }.execute();
+    }
+
+    private void serialise() {
+        mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
+        mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
     }
 
     /**
