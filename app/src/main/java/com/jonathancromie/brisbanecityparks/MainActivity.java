@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             LoginFragment fragment = new LoginFragment();
             FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().add(R.id.content_frame, fragment).commit();
+            fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
             setTitle("Login");
         }
 
@@ -377,8 +377,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.logout:
                 mClient.logout();
+                fragmentClass = LoginFragment.class;
             default:
-                fragmentClass = LocalFragment.class;
+                fragmentClass = LoginFragment.class;
         }
 
         try {

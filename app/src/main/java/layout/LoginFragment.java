@@ -151,7 +151,7 @@ public class LoginFragment extends Fragment {
     private void createFragment() {
         LocalFragment fragment = new LocalFragment();
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        fragmentManager.beginTransaction().add(R.id.content_frame, fragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
         getActivity().setTitle(R.string.local);
     }
 
