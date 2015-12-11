@@ -1,0 +1,27 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="layout.LoginFragment">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Facebook"
+        android:id="@+id/facebook"
+        android:layout_gravity="left|center_vertical"
+        android:layout_above="@+id/google"
+        android:layout_alignRight="@+id/google"
+        android:layout_alignEnd="@+id/google"
+        android:layout_marginBottom="80dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Google"
+        android:id="@+id/google"
+        android:layout_gravity="right|center_vertical"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+</RelativeLayout>

@@ -17,6 +17,11 @@
                     android:id="@+id/trending_fragment"
                     android:icon="@drawable/ic_trending_up_black_24px"
                     android:title="Trending"/>
+                <item
+                    android:id="@+id/logout"
+                    android:icon="@drawable/ic_exit_to_app_black_24px"
+                    android:title="Logout" />
+
             </menu>
         </item>
     </group>

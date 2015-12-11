@@ -6,8 +6,10 @@
     <string name="local">Local Parks</string>
     <string name="whatshot">What\'s Hot</string>
     <string name="trending">Trending Parks</string>
+    <string name="facebook_app_id">1492347181061059</string>
 
-<!-- TODO: Remove or change this placeholder text -->
+
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <string-array name="color_array">
