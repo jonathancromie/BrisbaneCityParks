@@ -72,7 +72,6 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
             fragmentTransaction.replace(R.id.content_frame, fragment);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
-//            fragment.getActivity().setTitle(parkName.getText().toString());
 
 
         }

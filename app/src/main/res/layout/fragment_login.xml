@@ -6,14 +6,14 @@
 
 
 
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/facebook"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_above="@+id/google"
-        android:layout_centerHorizontal="true"
-        android:layout_margin="8dp" />
+    <!--<com.facebook.login.widget.LoginButton-->
+        <!--android:id="@+id/facebook"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="center_horizontal"-->
+        <!--android:layout_above="@+id/google"-->
+        <!--android:layout_centerHorizontal="true"-->
+        <!--android:layout_margin="8dp" />-->
 
     <com.google.android.gms.common.SignInButton
         android:id="@+id/google"

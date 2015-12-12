@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,10 +41,12 @@ public class LoginFragment extends Fragment {
 
     private MobileServiceClient mClient;
 
+
+
     public boolean bAuthenticating = false;
     public final Object mAuthenticationLock = new Object();
 
-    private LoginButton facebookLogin;
+//    private LoginButton facebookLogin;
     private SignInButton googleLogin;
 
     private MobileServiceAuthenticationProvider provider;
@@ -57,9 +61,11 @@ public class LoginFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        FacebookSdk.sdkInitialize(getActivity().getApplicationContext());
+//        FacebookSdk.sdkInitialize(getActivity().getApplicationContext());
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_login, container, false);
+
+        getActivity().setTitle(R.string.login);
 
         try {
             mClient = new MobileServiceClient(
@@ -70,13 +76,21 @@ public class LoginFragment extends Fragment {
             e.printStackTrace();
         }
 
-        facebookLogin = (LoginButton) rootView.findViewById(R.id.facebook);
-        facebookLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                login(view);
-            }
-        });
+        if (loadUserTokenCache(mClient)) {
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            LocalFragment fragment = new LocalFragment();
+            fragmentTransaction.replace(R.id.content_frame, fragment);
+            fragmentTransaction.commit();
+        }
+
+//        facebookLogin = (LoginButton) rootView.findViewById(R.id.facebook);
+//        facebookLogin.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                login(view);
+//            }
+//        });
 
         googleLogin = (SignInButton) rootView.findViewById(R.id.google);
         googleLogin.setOnClickListener(new View.OnClickListener() {
@@ -91,9 +105,9 @@ public class LoginFragment extends Fragment {
 
     public void login(View view) {
         switch (view.getId()) {
-            case R.id.facebook:
-                provider = MobileServiceAuthenticationProvider.Facebook;
-                break;
+//            case R.id.facebook:
+//                provider = MobileServiceAuthenticationProvider.Facebook;
+//                break;
             case R.id.google:
                 provider = MobileServiceAuthenticationProvider.Google;
                 break;
@@ -153,6 +167,9 @@ public class LoginFragment extends Fragment {
     }
 
     private void createFragment() {
+
+
+
         LocalFragment fragment = new LocalFragment();
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();

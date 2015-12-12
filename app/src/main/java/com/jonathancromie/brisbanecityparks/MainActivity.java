@@ -2,6 +2,7 @@ package com.jonathancromie.brisbanecityparks;
 
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -48,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
             LoginFragment fragment = new LoginFragment();
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
-            setTitle("Login");
         }
 
         // Find our drawer view
@@ -74,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-
 
 //
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -189,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
 //                fragmentClass = TrendingFragment.class;
                 break;
             case R.id.logout:
-                mClient.logout();
+                logout();
                 fragmentClass = LoginFragment.class;
             default:
                 fragmentClass = LoginFragment.class;
@@ -210,5 +209,13 @@ public class MainActivity extends AppCompatActivity {
         setTitle(menuItem.getTitle());
         drawerLayout.closeDrawers();
 
+    }
+
+    private void logout() {
+        SharedPreferences prefs = getSharedPreferences(Constants.SHAREDPREFFILE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
+        editor.commit();
+        mClient.logout();
     }
 }

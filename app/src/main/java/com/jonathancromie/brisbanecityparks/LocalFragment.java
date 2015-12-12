@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.google.gson.JsonElement;
 import com.google.maps.android.SphericalUtil;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceList;
@@ -33,6 +34,7 @@ import com.microsoft.windowsazure.mobileservices.http.NextServiceFilterCallback;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilter;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterRequest;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
+import com.microsoft.windowsazure.mobileservices.table.MobileServiceJsonTable;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 
 import java.net.MalformedURLException;
@@ -48,6 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutionException;
 
 import com.microsoft.windowsazure.mobileservices.MobileServiceException;
+import com.microsoft.windowsazure.mobileservices.table.TableJsonQueryCallback;
 import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
 import com.microsoft.windowsazure.mobileservices.table.query.QueryOrder;
 
@@ -70,6 +73,8 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
     private String locationProvider;
 
     private ProgressBar mProgressBar;
+
+    MobileServiceJsonTable userTable;
 
     public LocalFragment() {
 
@@ -110,7 +115,6 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
 //
         parks = new ArrayList<Park>();
         parkAdapter = new ParkAdapter(getActivity().getLayoutInflater(), parks);
-        recyclerView = (RecyclerView)rootView.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(parkAdapter);
 
         mProgressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
@@ -124,14 +128,14 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                     MOBILE_SERVICE_KEY, getContext())
                     .withFilter(new ProgressFilter());
 
-
-//            parkTable = mClient.getTable(Park.class);
         } catch (MalformedURLException e) {
             createAndShowDialog(new Exception("Error creating the Mobile Service. " +
                     "Verify the URL"), "Error");
         }
 
         parkTable = mClient.getTable(Park.class);
+
+        userTable = mClient.getTable("user");
 
         // Load the items from the Mobile Service
         refreshItemsFromTable();
@@ -157,35 +161,6 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-//                    final MobileServiceList<Park> result = parkTable.execute().get();
-//                    final MobileServiceList<Park> result = parkTable.execute().get();
-//                    getActivity().runOnUiThread(new Runnable() {
-//
-//                        @Override
-//                        public void run() {
-//                            locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
-//                            LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-//
-//                            int counter = 0;
-//                            for (final Park park : result) {
-//
-//                                LatLng parkLocation = new LatLng(park.latitude, park.longitude);
-//                                park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
-//                                parks.add(park);
-//                                counter++;
-//
-//                            }
-//
-//                            for (Park park : parks) {
-//                                parkAdapter.addPark(park);
-//                                parkAdapter.notifyItemInserted(parkAdapter.parks.size() - 1);
-//                            }
-//
-//
-//                        }
-//                    });
-
-
                     parkTable.includeInlineCount().top(1000).execute(new TableQueryCallback<Park>() {
                         @Override
                         public void onCompleted(final List<Park> result, int count, Exception exception, ServiceFilterResponse response) {
@@ -202,11 +177,9 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                                         LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
 
                                         for (Park park : result) {
-
                                             LatLng parkLocation = new LatLng(park.latitude, park.longitude);
                                             park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
                                             parks.add(park);
-
                                         }
 
                                         for (Park park : parks) {
@@ -216,6 +189,13 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                                     }
                                 });
                             }
+                        }
+                    });
+
+                    userTable.execute(new TableJsonQueryCallback() {
+                        @Override
+                        public void onCompleted(JsonElement result, Exception exception, ServiceFilterResponse response) {
+                            System.out.println(exception);
                         }
                     });
 
