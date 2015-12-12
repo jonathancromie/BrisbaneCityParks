@@ -186,7 +186,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
 //                    });
 
 
-                    parkTable.top(10).execute(new TableQueryCallback<Park>() {
+                    parkTable.includeInlineCount().top(1000).execute(new TableQueryCallback<Park>() {
                         @Override
                         public void onCompleted(final List<Park> result, int count, Exception exception, ServiceFilterResponse response) {
                             serialise();

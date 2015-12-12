@@ -1,4 +1,4 @@
-package layout;
+package com.jonathancromie.brisbanecityparks;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -11,6 +11,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.facebook.FacebookSdk;
+import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.common.SignInButton;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jonathancromie.brisbanecityparks.Constants;
 import com.jonathancromie.brisbanecityparks.LocalFragment;
@@ -39,8 +42,8 @@ public class LoginFragment extends Fragment {
     public boolean bAuthenticating = false;
     public final Object mAuthenticationLock = new Object();
 
-    private Button facebookLogin;
-    private Button googleLogin;
+    private LoginButton facebookLogin;
+    private SignInButton googleLogin;
 
     private MobileServiceAuthenticationProvider provider;
 
@@ -54,6 +57,7 @@ public class LoginFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        FacebookSdk.sdkInitialize(getActivity().getApplicationContext());
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_login, container, false);
 
@@ -66,7 +70,7 @@ public class LoginFragment extends Fragment {
             e.printStackTrace();
         }
 
-        facebookLogin = (Button) rootView.findViewById(R.id.facebook);
+        facebookLogin = (LoginButton) rootView.findViewById(R.id.facebook);
         facebookLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -74,7 +78,7 @@ public class LoginFragment extends Fragment {
             }
         });
 
-        googleLogin = (Button) rootView.findViewById(R.id.google);
+        googleLogin = (SignInButton) rootView.findViewById(R.id.google);
         googleLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
