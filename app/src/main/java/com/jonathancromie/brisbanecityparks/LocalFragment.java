@@ -53,6 +53,7 @@ import com.microsoft.windowsazure.mobileservices.MobileServiceException;
 import com.microsoft.windowsazure.mobileservices.table.TableJsonQueryCallback;
 import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
 import com.microsoft.windowsazure.mobileservices.table.query.QueryOrder;
+import com.microsoft.windowsazure.mobileservices.table.sync.MobileServiceJsonSyncTable;
 
 public class LocalFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -135,7 +136,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
 
         parkTable = mClient.getTable(Park.class);
 
-        userTable = mClient.getTable("user");
+        userTable = mClient.getTable("Identities");
 
         // Load the items from the Mobile Service
         refreshItemsFromTable();
@@ -161,7 +162,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    parkTable.includeInlineCount().top(1000).execute(new TableQueryCallback<Park>() {
+                    parkTable.top(10).execute(new TableQueryCallback<Park>() {
                         @Override
                         public void onCompleted(final List<Park> result, int count, Exception exception, ServiceFilterResponse response) {
                             serialise();
@@ -192,12 +193,12 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                         }
                     });
 
-                    userTable.execute(new TableJsonQueryCallback() {
-                        @Override
-                        public void onCompleted(JsonElement result, Exception exception, ServiceFilterResponse response) {
-                            System.out.println(exception);
-                        }
-                    });
+//                    userTable.execute(new TableJsonQueryCallback() {
+//                        @Override
+//                        public void onCompleted(JsonElement result, Exception exception, ServiceFilterResponse response) {
+//
+//                        }
+//                    });
 
                 } catch (Exception exception) {
 	                createAndShowDialog(exception, "Error");

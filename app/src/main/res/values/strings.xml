@@ -30,5 +30,6 @@
     </string-array>
     <string name="title_activity_search_results">SearchResultsActivity</string>
     <string name="login">Login</string>
+    <string name="comment">Write a review...</string>
 
 </resources>

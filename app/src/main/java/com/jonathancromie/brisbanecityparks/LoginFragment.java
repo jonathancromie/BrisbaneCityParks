@@ -11,11 +11,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.widget.Button;
 
 import com.facebook.FacebookSdk;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.common.SignInButton;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jonathancromie.brisbanecityparks.Constants;
 import com.jonathancromie.brisbanecityparks.LocalFragment;
@@ -70,13 +74,16 @@ public class LoginFragment extends Fragment {
         try {
             mClient = new MobileServiceClient(
                     MOBILE_SERVICE_URL,
-                    MOBILE_SERVICE_KEY, getContext())
-                    .withFilter(new RefreshTokenCacheFilter());
+                    MOBILE_SERVICE_KEY, getContext());
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
 
         if (loadUserTokenCache(mClient)) {
+            CookieSyncManager.createInstance(getContext());
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.removeAllCookie();
+
             FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             LocalFragment fragment = new LocalFragment();
@@ -115,7 +122,7 @@ public class LoginFragment extends Fragment {
                 break;
         }
 
-        authenticate(false);
+        authenticate();
     }
 
     /**
@@ -124,47 +131,27 @@ public class LoginFragment extends Fragment {
      * If a local token cache is detected, the token cache is used instead of an actual
      * login unless bRefresh is set to true forcing a refresh.
      *
-     * @param bRefreshCache
-     *            Indicates whether to force a token refresh.
-     */
-    private void authenticate(boolean bRefreshCache) {
+     **/
+    private void authenticate() {
+        // Login using the Google provider.
 
-        bAuthenticating = true;
+        ListenableFuture<MobileServiceUser> mLogin = mClient.login(provider);
 
-        if (bRefreshCache || !loadUserTokenCache(mClient))
-        {
-            // New login using the provider and update the token cache.
-            mClient.login(provider,
-                    new UserAuthenticationCallback() {
-                        @Override
-                        public void onCompleted(MobileServiceUser user,
-                                                Exception exception, ServiceFilterResponse response) {
-
-                            synchronized (mAuthenticationLock) {
-                                if (exception == null) {
-                                    cacheUserToken(mClient.getCurrentUser());
-                                    createFragment();
-                                } else {
-                                    createAndShowDialog(exception.getMessage(), "Login Error");
-                                }
-                                bAuthenticating = false;
-                                mAuthenticationLock.notifyAll();
-                            }
-                        }
-                    });
-        }
-        else
-        {
-            // Other threads may be blocked waiting to be notified when
-            // authentication is complete.
-            synchronized(mAuthenticationLock)
-            {
-                bAuthenticating = false;
-                mAuthenticationLock.notifyAll();
+        Futures.addCallback(mLogin, new FutureCallback<MobileServiceUser>() {
+            @Override
+            public void onFailure(Throwable exc) {
+                createAndShowDialog((Exception) exc, "Error");
             }
-            createFragment();
-        }
+            @Override
+            public void onSuccess(MobileServiceUser user) {
+                createAndShowDialog(String.format(
+                        "You are now logged in - %1$2s",
+                        user.getUserId()), "Success");
+                createFragment();
+            }
+        });
     }
+
 
     private void createFragment() {
 
@@ -287,67 +274,67 @@ public class LoginFragment extends Fragment {
      * any blocked request will receive the X-ZUMO-AUTH header added or updated to
      * that request.
      */
-    private class RefreshTokenCacheFilter implements ServiceFilter {
-
-        AtomicBoolean mAtomicAuthenticatingFlag = new AtomicBoolean();
-
-        @Override
-        public ListenableFuture<ServiceFilterResponse> handleRequest(
-                final ServiceFilterRequest request,
-                final NextServiceFilterCallback nextServiceFilterCallback
-        )
-        {
-            // In this example, if authentication is already in progress we block the request
-            // until authentication is complete to avoid unnecessary authentications as
-            // a result of HTTP status code 401.
-            // If authentication was detected, add the token to the request.
-            waitAndUpdateRequestToken(request);
-
-            // Send the request down the filter chain
-            // retrying up to 5 times on 401 response codes.
-            ListenableFuture<ServiceFilterResponse> future = null;
-            ServiceFilterResponse response = null;
-            int responseCode = 401;
-            for (int i = 0; (i < 5 ) && (responseCode == 401); i++)
-            {
-                future = nextServiceFilterCallback.onNext(request);
-                try {
-                    response = future.get();
-                    responseCode = response.getStatus().getStatusCode();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    if (e.getCause().getClass() == MobileServiceException.class)
-                    {
-                        MobileServiceException mEx = (MobileServiceException) e.getCause();
-                        responseCode = mEx.getResponse().getStatus().getStatusCode();
-                        if (responseCode == 401)
-                        {
-                            // Two simultaneous requests from independent threads could get HTTP status 401.
-                            // Protecting against that right here so multiple authentication requests are
-                            // not setup to run on the UI thread.
-                            // We only want to authenticate once. Requests should just wait and retry
-                            // with the new token.
-                            if (mAtomicAuthenticatingFlag.compareAndSet(false, true))
-                            {
-                                // Authenticate on UI thread
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        // Force a token refresh during authentication.
-                                        authenticate(true);
-                                    }
-                                });
-                            }
-
-                            // Wait for authentication to complete then update the token in the request.
-                            waitAndUpdateRequestToken(request);
-                            mAtomicAuthenticatingFlag.set(false);
-                        }
-                    }
-                }
-            }
-            return future;
-        }
-    }
+//    private class RefreshTokenCacheFilter implements ServiceFilter {
+//
+//        AtomicBoolean mAtomicAuthenticatingFlag = new AtomicBoolean();
+//
+//        @Override
+//        public ListenableFuture<ServiceFilterResponse> handleRequest(
+//                final ServiceFilterRequest request,
+//                final NextServiceFilterCallback nextServiceFilterCallback
+//        )
+//        {
+//            // In this example, if authentication is already in progress we block the request
+//            // until authentication is complete to avoid unnecessary authentications as
+//            // a result of HTTP status code 401.
+//            // If authentication was detected, add the token to the request.
+//            waitAndUpdateRequestToken(request);
+//
+//            // Send the request down the filter chain
+//            // retrying up to 5 times on 401 response codes.
+//            ListenableFuture<ServiceFilterResponse> future = null;
+//            ServiceFilterResponse response = null;
+//            int responseCode = 401;
+//            for (int i = 0; (i < 5 ) && (responseCode == 401); i++)
+//            {
+//                future = nextServiceFilterCallback.onNext(request);
+//                try {
+//                    response = future.get();
+//                    responseCode = response.getStatus().getStatusCode();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                } catch (ExecutionException e) {
+//                    if (e.getCause().getClass() == MobileServiceException.class)
+//                    {
+//                        MobileServiceException mEx = (MobileServiceException) e.getCause();
+//                        responseCode = mEx.getResponse().getStatus().getStatusCode();
+//                        if (responseCode == 401)
+//                        {
+//                            // Two simultaneous requests from independent threads could get HTTP status 401.
+//                            // Protecting against that right here so multiple authentication requests are
+//                            // not setup to run on the UI thread.
+//                            // We only want to authenticate once. Requests should just wait and retry
+//                            // with the new token.
+//                            if (mAtomicAuthenticatingFlag.compareAndSet(false, true))
+//                            {
+//                                // Authenticate on UI thread
+//                                getActivity().runOnUiThread(new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        // Force a token refresh during authentication.
+//                                        authenticate();
+//                                    }
+//                                });
+//                            }
+//
+//                            // Wait for authentication to complete then update the token in the request.
+//                            waitAndUpdateRequestToken(request);
+//                            mAtomicAuthenticatingFlag.set(false);
+//                        }
+//                    }
+//                }
+//            }
+//            return future;
+//        }
+//    }
 }
