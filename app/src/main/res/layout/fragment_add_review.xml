@@ -12,28 +12,37 @@
         android:inputType="textMultiLine"
         android:ems="10"
         android:id="@+id/comment"
-        android:text="@string/comment"
-        android:layout_below="@+id/send"
+        android:hint="@string/comment"
+        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="8dp" />
 
     <RatingBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/ratingBar"
+        android:id="@+id/rating"
+        android:stepSize="1"
+        android:secondaryProgressTint="@color/colorPrimary"
+        android:numStars="5"
+        android:progressTint="@color/colorPrimaryDark"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignLeft="@+id/comment"
+        android:layout_alignStart="@+id/comment"
+        android:layout_margin="8dp" />
 
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/send"
         android:src="@drawable/ic_send_black_24dp"
-        android:background="#ffffff"
-        android:minWidth="40dp"
-        android:minHeight="40dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:background="@android:color/transparent"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:layout_alignTop="@+id/rating"
+        android:layout_alignRight="@+id/comment"
+        android:layout_alignEnd="@+id/comment" />
 
 </RelativeLayout>

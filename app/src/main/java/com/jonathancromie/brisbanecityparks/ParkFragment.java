@@ -2,6 +2,7 @@ package com.jonathancromie.brisbanecityparks;
 
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -104,6 +105,8 @@ public class ParkFragment extends Fragment {
             // The device is using a large layout, so show the fragment as a dialog
             fragment.show(fragmentManager, "dialog");
         } else {
+            fragment.setTargetFragment(this, 1); // how to return from dialogfragmet
+
             // The device is smaller, so show the fragment fullscreen
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             // For a little polish, specify a transition animation
@@ -112,6 +115,25 @@ public class ParkFragment extends Fragment {
             // for the fragment, which is always the root view for the activity
             transaction.replace(R.id.content_frame, fragment)
                     .addToBackStack(null).commit();
+
+
+
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1) {
+//            Bundle bundle = getArguments();
+//            String comment = bundle.getString("comment");
+//            int rating = bundle.getInt("rating");
+
+            String comment = data.getStringExtra("comment");
+            int rating = data.getIntExtra("rating", 0);
+
+            Review review = new Review(rating, comment);
+            reviewAdapter.addReview(review);
+            reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
         }
     }
 

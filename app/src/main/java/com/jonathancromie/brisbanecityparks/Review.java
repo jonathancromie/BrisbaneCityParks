@@ -9,8 +9,8 @@ import java.util.List;
  */
 public class Review {
 
-    @SerializedName("id")
-    private String id;
+//    @SerializedName("id")
+//    private String id;
 
     private int stars;
 
@@ -23,19 +23,18 @@ public class Review {
 
     }
 
-    public Review(String id, int stars, String comment) {
-        setId(id);
+    public Review(int stars, String comment) {
         setStars(stars);
         setComment(comment);
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+//    public String getId() {
+//        return id;
+//    }
+//
+//    public void setId(String id) {
+//        this.id = id;
+//    }
 
     public int getStars() {
         return stars;

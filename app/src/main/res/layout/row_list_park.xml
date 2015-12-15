@@ -34,7 +34,8 @@
                 android:textSize="14sp"
                 android:layout_above="@+id/parkDistance"
                 android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true" />
+                android:layout_alignParentStart="true"
+                android:layout_margin="8dp" />
             <TextView
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
@@ -42,7 +43,8 @@
                 android:textSize="14sp"
                 android:layout_above="@+id/explore"
                 android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true" />
+                android:layout_alignParentStart="true"
+                android:layout_margin="8dp" />
             <!--<TextView-->
                 <!--android:layout_width="match_parent"-->
                 <!--android:layout_height="wrap_content"-->
