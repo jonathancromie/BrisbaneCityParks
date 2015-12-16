@@ -41,7 +41,7 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
         Button explore;
         Button share;
 
-        private int parkId;
+        private String parkId;
 
         ParkViewHolder(View itemView) {
             super(itemView);
@@ -64,11 +64,11 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
             FragmentManager fragmentManager = ((AppCompatActivity) itemView.getContext()).getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             ParkFragment fragment = new ParkFragment();
+
             Bundle bundle = new Bundle();
-
-            bundle.putInt("parkId", parkId);
-
+            bundle.putString("parkId", parkId);
             fragment.setArguments(bundle);
+
             fragmentTransaction.replace(R.id.content_frame, fragment);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();

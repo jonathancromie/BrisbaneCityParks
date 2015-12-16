@@ -12,7 +12,8 @@ import java.util.ArrayList;
  * Created by Jonathan on 11/28/2015.
  */
 public class Park {
-    private int id;
+    @SerializedName("id")
+    String id;
 
     @SerializedName("park_code")
     String park_code;
@@ -45,7 +46,7 @@ public class Park {
         setReviews(new Review[0]);
     }
 
-    public Park(int id, String park_code, String name, String street, String suburb, String easting, String northing, double latitude, double longitude, double distance) {
+    public Park(String id, String park_code, String name, String street, String suburb, String easting, String northing, double latitude, double longitude, double distance) {
         setId(id);
         setParkCode(park_code);
         setName(name);
@@ -60,11 +61,11 @@ public class Park {
 
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 

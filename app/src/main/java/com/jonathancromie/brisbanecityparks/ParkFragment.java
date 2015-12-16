@@ -17,15 +17,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
+import com.google.gson.JsonObject;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceException;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
+import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
 import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
+
+import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -113,8 +118,7 @@ public class ParkFragment extends Fragment {
             transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             // To make it fullscreen, use the 'content' root view as the container
             // for the fragment, which is always the root view for the activity
-            transaction.replace(R.id.content_frame, fragment)
-                    .addToBackStack(null).commit();
+            transaction.replace(R.id.content_frame, fragment).commit();
 
 
 
@@ -131,10 +135,50 @@ public class ParkFragment extends Fragment {
             String comment = data.getStringExtra("comment");
             int rating = data.getIntExtra("rating", 0);
 
-            Review review = new Review(rating, comment);
-            reviewAdapter.addReview(review);
-            reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
+            lookup(rating, comment);
+
+//            Review review = new Review(rating, comment);
+//            reviewAdapter.addReview(review);
+//            reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
         }
+    }
+
+    /**
+     * Lookup specific item from table and UI
+     */
+    public void lookup(final int rating, final String comment) {
+        final String ID = getArguments().getString("parkId");
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    serialise();
+                    final Park park = parkTable.lookUp(ID).get();
+                    Review review = new Review(rating, comment);
+                    park.setReviews(new Review[] {review});
+
+                    getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            parkTable.insert(park, new TableOperationCallback<Park>() {
+                                @Override
+                                public void onCompleted(Park inserted, Exception exception, ServiceFilterResponse response) {
+                                    if (exception != null) {
+                                        createAndShowDialog(exception, "Error");
+                                    } else {
+                                        createAndShowDialog("Inserted id = " + inserted.getId(), "Success");
+                                    }
+                                }
+                            });
+
+                        }
+                    });
+                } catch (Exception exception) {
+                    createAndShowDialog(exception, "Error");
+                }
+                return null;
+            }
+        }.execute();
     }
 
     private void refreshItemsFromTable() {
@@ -159,10 +203,8 @@ public class ParkFragment extends Fragment {
                                     public void run() {
                                         StringBuilder sb = new StringBuilder();
                                         for (Park park : parks) {
-                                            int parkId = getArguments().getInt("parkId");
-                                            if (parkId != park.getId()) {
-                                            }
-                                            else {
+                                            String parkId = getArguments().getString("parkId");
+                                            if (parkId.equals(park.getId())) {
                                                 String name = park.getName();
                                                 String street = park.getStreet();
                                                 String suburb = park.getSuburb();
@@ -177,7 +219,9 @@ public class ParkFragment extends Fragment {
                                                     reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
                                                 }
                                             }
+                                            else {
 
+                                            }
                                         }
 
                                     }
