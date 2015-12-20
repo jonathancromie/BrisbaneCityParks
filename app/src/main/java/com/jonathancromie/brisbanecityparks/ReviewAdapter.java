@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -17,13 +18,13 @@ import java.util.List;
  */
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder> {
     public static class ReviewViewHolder extends RecyclerView.ViewHolder {
-        TextView stars;
+        RatingBar stars;
         TextView comment;
 
 
         public ReviewViewHolder(View itemView) {
             super(itemView);
-            stars = (TextView) itemView.findViewById(R.id.stars);
+            stars = (RatingBar) itemView.findViewById(R.id.stars);
             comment = (TextView) itemView.findViewById(R.id.comment);
         }
     }
@@ -53,7 +54,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
     @Override
     public void onBindViewHolder(ReviewViewHolder holder, int position) {
-        holder.stars.setText(String.valueOf(reviews.get(position).getStars()) + " stars");
+        holder.stars.setNumStars(reviews.get(position).getStars());
         holder.comment.setText(reviews.get(position).getComment());
 
     }

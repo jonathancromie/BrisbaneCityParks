@@ -137,7 +137,7 @@ public class ParkFragment extends Fragment {
         if (requestCode == 1) {
 
             String comment = data.getStringExtra("comment");
-            int stars = data.getIntExtra("stars", 0);
+            int stars = (int) data.getFloatExtra("stars", 0);
 
             addReview(comment, stars);
 

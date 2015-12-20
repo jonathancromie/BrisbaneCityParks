@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/user"
-        android:text="User says: "
+        android:text="Anonymous says: "
         android:textStyle="bold" />
 
     <TextView
@@ -21,15 +21,16 @@
         android:layout_toRightOf="@+id/user"
         android:layout_toEndOf="@+id/user" />
 
-    <TextView
+    <RatingBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/stars"
-        android:layout_below="@+id/user"
+        android:isIndicator="true"
+        android:layout_below="@+id/comment"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textStyle="bold" />
-
+        android:numStars="5"
+        android:progressBackgroundTint="@color/colorPrimaryDark" />
 
 
 </RelativeLayout>

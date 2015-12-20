@@ -25,13 +25,13 @@
         android:layout_height="wrap_content"
         android:id="@+id/stars"
         android:stepSize="1"
-        android:secondaryProgressTint="@color/colorPrimary"
         android:numStars="5"
-        android:progressTint="@color/colorPrimaryDark"
+        android:progressBackgroundTint="@color/colorPrimaryDark"
         android:layout_alignParentBottom="true"
         android:layout_alignLeft="@+id/comment"
         android:layout_alignStart="@+id/comment"
-        android:layout_margin="8dp" />
+        android:layout_margin="8dp"
+        android:progressTint="#ffffff" />
 
     <ImageButton
         android:layout_width="wrap_content"

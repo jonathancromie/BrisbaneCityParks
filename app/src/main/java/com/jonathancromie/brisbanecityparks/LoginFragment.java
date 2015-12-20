@@ -3,27 +3,24 @@ package com.jonathancromie.brisbanecityparks;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.widget.Button;
+import android.widget.ProgressBar;
 
-import com.facebook.FacebookSdk;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.common.SignInButton;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.jonathancromie.brisbanecityparks.Constants;
-import com.jonathancromie.brisbanecityparks.LocalFragment;
-import com.jonathancromie.brisbanecityparks.R;
+import com.google.common.util.concurrent.SettableFuture;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceException;
 import com.microsoft.windowsazure.mobileservices.UserAuthenticationCallback;
@@ -46,20 +43,19 @@ public class LoginFragment extends Fragment {
     private MobileServiceClient mClient;
 
 
-
     public boolean bAuthenticating = false;
     public final Object mAuthenticationLock = new Object();
 
-//    private LoginButton facebookLogin;
+    //    private LoginButton facebookLogin;
     private SignInButton googleLogin;
 
     private MobileServiceAuthenticationProvider provider;
+    private ProgressBar mProgressBar;
 
 
     public LoginFragment() {
         // Required empty public constructor
     }
-
 
 
     @Override
@@ -68,62 +64,54 @@ public class LoginFragment extends Fragment {
 //        FacebookSdk.sdkInitialize(getActivity().getApplicationContext());
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_login, container, false);
+        mProgressBar = (ProgressBar) rootView.findViewById(R.id.loadingProgressBar);
+
+        // Initialize the progress bar
+        mProgressBar.setVisibility(ProgressBar.GONE);
 
         getActivity().setTitle(R.string.login);
 
         try {
             mClient = new MobileServiceClient(
                     MOBILE_SERVICE_URL,
-                    MOBILE_SERVICE_KEY, getContext());
+                    MOBILE_SERVICE_KEY, getContext())
+                    .withFilter(new ProgressFilter())
+                    .withFilter(new RefreshTokenCacheFilter());
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
 
-        if (loadUserTokenCache(mClient)) {
-            CookieSyncManager.createInstance(getContext());
-            CookieManager cookieManager = CookieManager.getInstance();
-            cookieManager.removeAllCookie();
-
-            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            LocalFragment fragment = new LocalFragment();
-            fragmentTransaction.replace(R.id.content_frame, fragment);
-            fragmentTransaction.commit();
-        }
+//        if (loadUserTokenCache(mClient)) {
+//            CookieSyncManager.createInstance(getContext());
+//            CookieManager cookieManager = CookieManager.getInstance();
+//            cookieManager.removeAllCookie();
+//
+//            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+//            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+//            LocalFragment fragment = new LocalFragment();
+//            fragmentTransaction.replace(R.id.content_frame, fragment);
+//            fragmentTransaction.commit();
+//        }
 
 //        facebookLogin = (LoginButton) rootView.findViewById(R.id.facebook);
-//        facebookLogin.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                login(view);
-//            }
-//        });
+//        facebookLogin.setOnClickListener(loginWithProviderClickListener);
 
         googleLogin = (SignInButton) rootView.findViewById(R.id.google);
-        googleLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                login(view);
-            }
-        });
+        googleLogin.setOnClickListener(loginWithProviderClickListener);
 
         return rootView;
     }
 
-    public void login(View view) {
-        switch (view.getId()) {
-//            case R.id.facebook:
-//                provider = MobileServiceAuthenticationProvider.Facebook;
-//                break;
-            case R.id.google:
-                provider = MobileServiceAuthenticationProvider.Google;
-                break;
-            default:
-                break;
+    View.OnClickListener loginWithProviderClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()) {
+                case R.id.google:
+                    provider = MobileServiceAuthenticationProvider.Google;
+            }
+            authenticate(false);
         }
-
-        authenticate();
-    }
+    };
 
     /**
      * Authenticates with the desired login provider. Also caches the token.
@@ -131,32 +119,50 @@ public class LoginFragment extends Fragment {
      * If a local token cache is detected, the token cache is used instead of an actual
      * login unless bRefresh is set to true forcing a refresh.
      *
-     **/
-    private void authenticate() {
-        // Login using the Google provider.
+     * @param bRefreshCache
+     *            Indicates whether to force a token refresh.
+     */
+    private void authenticate(boolean bRefreshCache) {
 
-        ListenableFuture<MobileServiceUser> mLogin = mClient.login(provider);
+        bAuthenticating = true;
 
-        Futures.addCallback(mLogin, new FutureCallback<MobileServiceUser>() {
-            @Override
-            public void onFailure(Throwable exc) {
-                createAndShowDialog((Exception) exc, "Error");
+        if (bRefreshCache || !loadUserTokenCache(mClient))
+        {
+            // New login using the provider and update the token cache.
+            mClient.login(provider,
+                    new UserAuthenticationCallback() {
+                        @Override
+                        public void onCompleted(MobileServiceUser user,
+                                                Exception exception, ServiceFilterResponse response) {
+
+                            synchronized (mAuthenticationLock) {
+                                if (exception == null) {
+                                    cacheUserToken(mClient.getCurrentUser());
+                                    createFragment();
+                                } else {
+                                    createAndShowDialog(exception.getMessage(), "Login Error");
+                                }
+                                bAuthenticating = false;
+                                mAuthenticationLock.notifyAll();
+                            }
+                        }
+                    });
+        }
+        else
+        {
+            // Other threads may be blocked waiting to be notified when
+            // authentication is complete.
+            synchronized(mAuthenticationLock)
+            {
+                bAuthenticating = false;
+                mAuthenticationLock.notifyAll();
             }
-            @Override
-            public void onSuccess(MobileServiceUser user) {
-                createAndShowDialog(String.format(
-                        "You are now logged in - %1$2s",
-                        user.getUserId()), "Success");
-                createFragment();
-            }
-        });
+            createFragment();
+        }
     }
 
 
     private void createFragment() {
-
-
-
         LocalFragment fragment = new LocalFragment();
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
@@ -166,7 +172,7 @@ public class LoginFragment extends Fragment {
     private void cacheUserToken(MobileServiceUser user)
     {
         SharedPreferences prefs = getActivity().getSharedPreferences(Constants.SHAREDPREFFILE, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
+        Editor editor = prefs.edit();
         editor.putString(Constants.USERIDPREF, user.getUserId());
         editor.putString(Constants.TOKENPREF, user.getAuthenticationToken());
         editor.commit();
@@ -241,10 +247,8 @@ public class LoginFragment extends Fragment {
     /**
      * Creates a dialog and shows it
      *
-     * @param exception
-     *            The exception to show in the dialog
-     * @param title
-     *            The dialog title
+     * @param exception The exception to show in the dialog
+     * @param title     The dialog title
      */
     private void createAndShowDialog(Exception exception, String title) {
         createAndShowDialog(exception.toString(), title);
@@ -253,10 +257,8 @@ public class LoginFragment extends Fragment {
     /**
      * Creates a dialog and shows it
      *
-     * @param message
-     *            The dialog message
-     * @param title
-     *            The dialog title
+     * @param message The dialog message
+     * @param title   The dialog title
      */
     private void createAndShowDialog(String message, String title) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -274,67 +276,111 @@ public class LoginFragment extends Fragment {
      * any blocked request will receive the X-ZUMO-AUTH header added or updated to
      * that request.
      */
-//    private class RefreshTokenCacheFilter implements ServiceFilter {
-//
-//        AtomicBoolean mAtomicAuthenticatingFlag = new AtomicBoolean();
-//
-//        @Override
-//        public ListenableFuture<ServiceFilterResponse> handleRequest(
-//                final ServiceFilterRequest request,
-//                final NextServiceFilterCallback nextServiceFilterCallback
-//        )
-//        {
-//            // In this example, if authentication is already in progress we block the request
-//            // until authentication is complete to avoid unnecessary authentications as
-//            // a result of HTTP status code 401.
-//            // If authentication was detected, add the token to the request.
-//            waitAndUpdateRequestToken(request);
-//
-//            // Send the request down the filter chain
-//            // retrying up to 5 times on 401 response codes.
-//            ListenableFuture<ServiceFilterResponse> future = null;
-//            ServiceFilterResponse response = null;
-//            int responseCode = 401;
-//            for (int i = 0; (i < 5 ) && (responseCode == 401); i++)
-//            {
-//                future = nextServiceFilterCallback.onNext(request);
-//                try {
-//                    response = future.get();
-//                    responseCode = response.getStatus().getStatusCode();
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                } catch (ExecutionException e) {
-//                    if (e.getCause().getClass() == MobileServiceException.class)
-//                    {
-//                        MobileServiceException mEx = (MobileServiceException) e.getCause();
-//                        responseCode = mEx.getResponse().getStatus().getStatusCode();
-//                        if (responseCode == 401)
-//                        {
-//                            // Two simultaneous requests from independent threads could get HTTP status 401.
-//                            // Protecting against that right here so multiple authentication requests are
-//                            // not setup to run on the UI thread.
-//                            // We only want to authenticate once. Requests should just wait and retry
-//                            // with the new token.
-//                            if (mAtomicAuthenticatingFlag.compareAndSet(false, true))
-//                            {
-//                                // Authenticate on UI thread
-//                                getActivity().runOnUiThread(new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        // Force a token refresh during authentication.
-//                                        authenticate();
-//                                    }
-//                                });
-//                            }
-//
-//                            // Wait for authentication to complete then update the token in the request.
-//                            waitAndUpdateRequestToken(request);
-//                            mAtomicAuthenticatingFlag.set(false);
-//                        }
-//                    }
-//                }
-//            }
-//            return future;
-//        }
-//    }
+    private class RefreshTokenCacheFilter implements ServiceFilter {
+
+        AtomicBoolean mAtomicAuthenticatingFlag = new AtomicBoolean();
+
+        @Override
+        public ListenableFuture<ServiceFilterResponse> handleRequest(
+                final ServiceFilterRequest request,
+                final NextServiceFilterCallback nextServiceFilterCallback
+        )
+        {
+            // In this example, if authentication is already in progress we block the request
+            // until authentication is complete to avoid unnecessary authentications as
+            // a result of HTTP status code 401.
+            // If authentication was detected, add the token to the request.
+            waitAndUpdateRequestToken(request);
+
+            // Send the request down the filter chain
+            // retrying up to 5 times on 401 response codes.
+            ListenableFuture<ServiceFilterResponse> future = null;
+            ServiceFilterResponse response = null;
+            int responseCode = 401;
+            for (int i = 0; (i < 5 ) && (responseCode == 401); i++)
+            {
+                future = nextServiceFilterCallback.onNext(request);
+                try {
+                    response = future.get();
+                    responseCode = response.getStatus().getStatusCode();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    if (e.getCause().getClass() == MobileServiceException.class)
+                    {
+                        MobileServiceException mEx = (MobileServiceException) e.getCause();
+                        responseCode = mEx.getResponse().getStatus().getStatusCode();
+                        if (responseCode == 401)
+                        {
+                            // Two simultaneous requests from independent threads could get HTTP status 401.
+                            // Protecting against that right here so multiple authentication requests are
+                            // not setup to run on the UI thread.
+                            // We only want to authenticate once. Requests should just wait and retry
+                            // with the new token.
+                            if (mAtomicAuthenticatingFlag.compareAndSet(false, true))
+                            {
+                                // Authenticate on UI thread
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // Force a token refresh during authentication.
+                                        authenticate(true);
+                                    }
+                                });
+                            }
+
+                            // Wait for authentication to complete then update the token in the request.
+                            waitAndUpdateRequestToken(request);
+                            mAtomicAuthenticatingFlag.set(false);
+                        }
+                    }
+                }
+            }
+            return future;
+        }
+    }
+
+    /**
+     * The ProgressFilter class renders a progress bar on the screen during the time the App is waiting for the response of a previous request.
+     * the filter shows the progress bar on the beginning of the request, and hides it when the response arrived.
+     */
+    private class ProgressFilter implements ServiceFilter {
+        @Override
+        public ListenableFuture<ServiceFilterResponse> handleRequest(ServiceFilterRequest request, NextServiceFilterCallback nextServiceFilterCallback) {
+
+            final SettableFuture<ServiceFilterResponse> resultFuture = SettableFuture.create();
+
+            getActivity().runOnUiThread(new Runnable() {
+
+                @Override
+                public void run() {
+                    if (mProgressBar != null) mProgressBar.setVisibility(ProgressBar.VISIBLE);
+                }
+            });
+
+            ListenableFuture<ServiceFilterResponse> future = nextServiceFilterCallback.onNext(request);
+
+            Futures.addCallback(future, new FutureCallback<ServiceFilterResponse>() {
+                @Override
+                public void onFailure(Throwable e) {
+                    resultFuture.setException(e);
+                }
+
+                @Override
+                public void onSuccess(ServiceFilterResponse response) {
+                    getActivity().runOnUiThread(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            if (mProgressBar != null) mProgressBar.setVisibility(ProgressBar.GONE);
+                        }
+                    });
+
+                    resultFuture.set(response);
+                }
+            });
+
+            return resultFuture;
+        }
+    }
 }

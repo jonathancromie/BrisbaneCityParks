@@ -15,6 +15,7 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RatingBar;
+import android.widget.Toast;
 
 import com.jonathancromie.brisbanecityparks.R;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
@@ -33,6 +34,8 @@ public class AddReviewFragment extends DialogFragment {
     RatingBar stars;
     ImageButton send;
 
+    int numStars = 0;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -41,6 +44,7 @@ public class AddReviewFragment extends DialogFragment {
 
         comment = (EditText) rootView.findViewById(R.id.comment);
         stars = (RatingBar) rootView.findViewById(R.id.stars);
+
         send = (ImageButton) rootView.findViewById(R.id.send);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -51,7 +55,7 @@ public class AddReviewFragment extends DialogFragment {
 
                 Intent i = new Intent();
                 i.putExtra("comment", comment.getText().toString());
-                i.putExtra("stars", stars.getNumStars());
+                i.putExtra("stars", stars.getRating());
 
                 getTargetFragment().onActivityResult(getTargetRequestCode(), 1, i);
 
