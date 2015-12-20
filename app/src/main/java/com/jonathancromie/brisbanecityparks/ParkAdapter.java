@@ -84,10 +84,10 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
         this.parks = new SortedList<Park>(Park.class, new SortedListAdapterCallback<Park>(this) {
             @Override
             public int compare(Park park1, Park park2) {
-                if (park1.distance < park2.distance) {
+                if (park1.getDistance() < park2.getDistance()) {
                     return -1;
                 }
-                else if (park1.distance > park2.distance) {
+                else if (park1.getDistance() > park2.getDistance()) {
                     return 1;
                 }
                 return 0;
@@ -122,10 +122,10 @@ public class ParkAdapter extends RecyclerView.Adapter<ParkAdapter.ParkViewHolder
 
     @Override
     public void onBindViewHolder(ParkViewHolder holder, int position) {
-        holder.parkName.setText(parks.get(position).name);
+        holder.parkName.setText(parks.get(position).getName());
 //        holder.parkStreet.setText(parks.get(position).street);
 //        holder.parkSuburb.setText(parks.get(position).suburb);
-        int distance = (int) parks.get(position).distance;
+        int distance = (int) parks.get(position).getDistance();
         holder.parkDistance.setText(distanceToString(distance));
 
         holder.parkId = parks.get(position).getId();

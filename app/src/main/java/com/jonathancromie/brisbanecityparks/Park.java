@@ -13,31 +13,34 @@ import java.util.ArrayList;
  */
 public class Park {
     @SerializedName("id")
-    String id;
+    private String id;
 
     @SerializedName("park_code")
-    String park_code;
+    private String park_code;
 
     @SerializedName("name")
-    String name;
+    private String name;
 
     @SerializedName("street")
-    String street;
+    private String street;
 
     @SerializedName("suburb")
-    String suburb;
+    private String suburb;
 
     @SerializedName("easting")
-    String easting;
+    private String easting;
 
     @SerializedName("northing")
-    String northing;
+    private String northing;
 
-    double latitude;
+    @SerializedName("latitude")
+    private double latitude;
 
-    double longitude;
+    @SerializedName("longitude")
+    private double longitude;
 
-    double distance;
+    @SerializedName("distance")
+    private double distance;
 
     @SerializedName("reviews")
     private Review[] reviews;

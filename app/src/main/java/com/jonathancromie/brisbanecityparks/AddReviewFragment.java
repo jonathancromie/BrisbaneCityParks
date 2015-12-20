@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class AddReviewFragment extends DialogFragment {
     EditText comment;
-    RatingBar rating;
+    RatingBar stars;
     ImageButton send;
 
     @Override
@@ -40,18 +40,18 @@ public class AddReviewFragment extends DialogFragment {
         View rootView = inflater.inflate(R.layout.fragment_add_review, container, false);
 
         comment = (EditText) rootView.findViewById(R.id.comment);
-        rating = (RatingBar) rootView.findViewById(R.id.rating);
+        stars = (RatingBar) rootView.findViewById(R.id.stars);
         send = (ImageButton) rootView.findViewById(R.id.send);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bundle bundle = new Bundle();
-                bundle.putString("comment", comment.getText().toString());
-                bundle.putInt("rating", rating.getNumStars());
+//                Bundle bundle = new Bundle();
+//                bundle.putString("comment", comment.getText().toString());
+//                bundle.putInt("stars", stars.getNumStars());
 
                 Intent i = new Intent();
                 i.putExtra("comment", comment.getText().toString());
-                i.putExtra("rating", rating.getNumStars());
+                i.putExtra("stars", stars.getNumStars());
 
                 getTargetFragment().onActivityResult(getTargetRequestCode(), 1, i);
 

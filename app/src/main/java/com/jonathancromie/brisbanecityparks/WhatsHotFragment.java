@@ -298,8 +298,8 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
                             int counter = 0;
                             for (final Park park : result) {
 
-                                LatLng parkLocation = new LatLng(park.latitude, park.longitude);
-                                park.distance = SphericalUtil.computeDistanceBetween(userLocation, parkLocation);
+                                LatLng parkLocation = new LatLng(park.getLatitude(), park.getLongitude());
+                                park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
                                 parks.add(park);
                                 counter++;
 

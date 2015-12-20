@@ -134,7 +134,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                     "Verify the URL"), "Error");
         }
 
-        parkTable = mClient.getTable(Park.class);
+        parkTable = mClient.getTable("park", Park.class);
 
         userTable = mClient.getTable("Identities");
 
@@ -165,7 +165,6 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                     parkTable.top(10).execute(new TableQueryCallback<Park>() {
                         @Override
                         public void onCompleted(final List<Park> result, int count, Exception exception, ServiceFilterResponse response) {
-                            serialise();
                             if (exception != null) {
                                 createAndShowDialog(exception, "Error");
                             }
@@ -178,7 +177,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
                                         LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
 
                                         for (Park park : result) {
-                                            LatLng parkLocation = new LatLng(park.latitude, park.longitude);
+                                            LatLng parkLocation = new LatLng(park.getLatitude(), park.getLongitude());
                                             park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
                                             parks.add(park);
                                         }

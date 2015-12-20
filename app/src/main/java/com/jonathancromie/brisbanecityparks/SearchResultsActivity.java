@@ -153,7 +153,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                                         LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
 
                                         for (Park park : result) {
-                                            LatLng parkLocation = new LatLng(park.latitude, park.longitude);
+                                            LatLng parkLocation = new LatLng(park.getLatitude(), park.getLongitude());
                                             park.setDistance(SphericalUtil.computeDistanceBetween(userLocation, parkLocation));
                                             parks.add(park);
                                         }

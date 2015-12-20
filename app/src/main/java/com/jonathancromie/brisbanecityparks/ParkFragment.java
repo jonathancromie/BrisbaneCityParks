@@ -12,14 +12,20 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceException;
+import com.microsoft.windowsazure.mobileservices.ServiceFilterResponseCallback;
+import com.microsoft.windowsazure.mobileservices.http.NextServiceFilterCallback;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilter;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilterRequest;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
@@ -31,6 +37,9 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -77,15 +86,14 @@ public class ParkFragment extends Fragment {
                     MOBILE_SERVICE_URL,
                     MOBILE_SERICE_KEY, getContext());
 
-//            parksTable = mClient.getTable(Park.class);
         } catch (MalformedURLException e) {
             createAndShowDialog(new Exception("Error creating the Mobile Service. " +
                     "Verify the URL"), "Error");
         }
 
+
         // Get the Mobile Service Table instance to use
         parkTable = mClient.getTable("park", Park.class);
-//        reviewTable = mClient.getTable("review", Review.class);
 
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -94,7 +102,6 @@ public class ParkFragment extends Fragment {
                 showDialog();
             }
         });
-
 
         // Load the items from the Mobile Service
         refreshItemsFromTable();
@@ -128,14 +135,11 @@ public class ParkFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
-//            Bundle bundle = getArguments();
-//            String comment = bundle.getString("comment");
-//            int rating = bundle.getInt("rating");
 
             String comment = data.getStringExtra("comment");
-            int rating = data.getIntExtra("rating", 0);
+            int stars = data.getIntExtra("stars", 0);
 
-            lookup(rating, comment);
+            lookup(comment, stars);
 
 //            Review review = new Review(rating, comment);
 //            reviewAdapter.addReview(review);
@@ -146,31 +150,30 @@ public class ParkFragment extends Fragment {
     /**
      * Lookup specific item from table and UI
      */
-    public void lookup(final int rating, final String comment) {
+    public void lookup(final String comment, final int stars) {
         final String ID = getArguments().getString("parkId");
         new AsyncTask<Void, Void, Void>() {
 
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    serialise();
+
                     final Park park = parkTable.lookUp(ID).get();
-                    Review review = new Review(rating, comment);
+                    Review review = new Review(comment, stars);
                     park.setReviews(new Review[] {review});
 
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
-                            parkTable.insert(park, new TableOperationCallback<Park>() {
+                            parkTable.update(park, new TableOperationCallback<Park>() {
                                 @Override
-                                public void onCompleted(Park inserted, Exception exception, ServiceFilterResponse response) {
+                                public void onCompleted(Park entity, Exception exception, ServiceFilterResponse response) {
                                     if (exception != null) {
                                         createAndShowDialog(exception, "Error");
                                     } else {
-                                        createAndShowDialog("Inserted id = " + inserted.getId(), "Success");
+                                        createAndShowDialog("Inserted id = " + entity.getId(), "Success");
                                     }
                                 }
                             });
-
                         }
                     });
                 } catch (Exception exception) {
@@ -182,65 +185,84 @@ public class ParkFragment extends Fragment {
     }
 
     private void refreshItemsFromTable() {
-        // Get the items that weren't marked as completed and add them in the adapter
+        final String ID = getArguments().getString("parkId");
         new AsyncTask<Void, Void, Void>() {
 
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    parkTable.top(10).execute(new TableQueryCallback<Park>() {
-
-                        @Override
-                        public void onCompleted(final List<Park> parks, int count, Exception exception, ServiceFilterResponse response) {
-                            serialise();
-                            if (exception != null) {
-                                createAndShowDialog(exception, "Error");
-                            }
-                            else {
-                                getActivity().runOnUiThread(new Runnable() {
-
-                                    @Override
-                                    public void run() {
-                                        StringBuilder sb = new StringBuilder();
-                                        for (Park park : parks) {
-                                            String parkId = getArguments().getString("parkId");
-                                            if (parkId.equals(park.getId())) {
-                                                String name = park.getName();
-                                                String street = park.getStreet();
-                                                String suburb = park.getSuburb();
-
-                                                getActivity().setTitle(name);
-                                                Review[] reviews = park.getReviews();
-                                                for (Review review : reviews) {
-//                                                    for (int i = 0; i < review.getStars(); i++) {
+                    final Park result = parkTable.lookUp(ID).get();
+                    getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            getActivity().setTitle(result.getName());
+                            Review[] reviews = result.getReviews();
+                            for (Review review : reviews) {
+//                                for (int i = 0; i < review.getStars(); i++) {
 //
-//                                                    }
-                                                    reviewAdapter.addReview(review);
-                                                    reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
-                                                }
-                                            }
-                                            else {
-
-                                            }
-                                        }
-
-                                    }
-                                });
+//                                }
+                                reviewAdapter.addReview(review);
+                                reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
                             }
                         }
                     });
                 } catch (Exception exception) {
                     createAndShowDialog(exception, "Error");
                 }
-
                 return null;
             }
         }.execute();
-    }
 
-    private void serialise() {
-        mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
-        mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
+//        // Get the items that weren't marked as completed and add them in the adapter
+//        new AsyncTask<Void, Void, Void>() {
+//
+//            @Override
+//            protected Void doInBackground(Void... params) {
+//                try {
+//                    parkTable.top(10).execute(new TableQueryCallback<Park>() {
+//
+//                        @Override
+//                        public void onCompleted(final List<Park> parks, int count, Exception exception, ServiceFilterResponse response) {
+//                            if (exception != null) {
+//                                createAndShowDialog(exception, "Error");
+//                            } else {
+//                                getActivity().runOnUiThread(new Runnable() {
+//
+//                                    @Override
+//                                    public void run() {
+//                                        StringBuilder sb = new StringBuilder();
+//                                        for (Park park : parks) {
+//                                            String parkId = getArguments().getString("parkId");
+//                                            if (parkId.equals(park.getId())) {
+//                                                String name = park.getName();
+//                                                String street = park.getStreet();
+//                                                String suburb = park.getSuburb();
+//
+//                                                getActivity().setTitle(name);
+//                                                Review[] reviews = park.getReviews();
+//                                                for (Review review : reviews) {
+////                                                    for (int i = 0; i < review.getStars(); i++) {
+////
+////                                                    }
+//                                                    reviewAdapter.addReview(review);
+//                                                    reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
+//                                                }
+//                                            } else {
+//
+//                                            }
+//                                        }
+//
+//                                    }
+//                                });
+//                            }
+//                        }
+//                    });
+//                } catch (Exception exception) {
+//                    createAndShowDialog(exception, "Error");
+//                }
+//
+//                return null;
+//            }
+//        }.execute();
     }
 
     /**
