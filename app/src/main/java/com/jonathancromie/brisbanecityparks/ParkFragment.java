@@ -139,7 +139,9 @@ public class ParkFragment extends Fragment {
             String comment = data.getStringExtra("comment");
             int stars = data.getIntExtra("stars", 0);
 
-            lookup(comment, stars);
+            addReview(comment, stars);
+
+            // show park fragment again
 
 //            Review review = new Review(rating, comment);
 //            reviewAdapter.addReview(review);
@@ -150,7 +152,7 @@ public class ParkFragment extends Fragment {
     /**
      * Lookup specific item from table and UI
      */
-    public void lookup(final String comment, final int stars) {
+    public void addReview(final String comment, final int stars) {
         final String ID = getArguments().getString("parkId");
         new AsyncTask<Void, Void, Void>() {
 
@@ -171,6 +173,7 @@ public class ParkFragment extends Fragment {
                                         createAndShowDialog(exception, "Error");
                                     } else {
                                         createAndShowDialog("Inserted id = " + entity.getId(), "Success");
+
                                     }
                                 }
                             });
