@@ -4,7 +4,7 @@
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="local">Local Parks</string>
-    <string name="whatshot">What\'s Hot</string>
+    <string name="whatshot">Whats Hot</string>
     <string name="trending">Trending Parks</string>
     <string name="facebook_app_id">1492347181061059</string>
 
@@ -31,5 +31,6 @@
     <string name="title_activity_search_results">SearchResultsActivity</string>
     <string name="login">Login</string>
     <string name="comment">Write a review...</string>
+    <string name="logout">Logout</string>
 
 </resources>

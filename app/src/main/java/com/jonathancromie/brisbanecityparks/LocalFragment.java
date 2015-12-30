@@ -84,6 +84,9 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+//        getActivity().setTitle(R.string.local);
+
         View rootView = inflater.inflate(R.layout.fragment_local, container, false);
 
         // Acquire a reference to the system Location Manager
@@ -162,7 +165,7 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    parkTable.top(10).execute(new TableQueryCallback<Park>() {
+                    parkTable.execute(new TableQueryCallback<Park>() {
                         @Override
                         public void onCompleted(final List<Park> result, int count, Exception exception, ServiceFilterResponse response) {
                             if (exception != null) {
@@ -207,10 +210,10 @@ public class LocalFragment extends Fragment implements GoogleApiClient.Connectio
         }.execute();
     }
 
-    private void serialise() {
-        mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
-        mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
-    }
+//    private void serialise() {
+//        mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
+//        mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
+//    }
 
     /**
      * Creates a dialog and shows it

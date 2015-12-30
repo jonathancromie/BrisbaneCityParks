@@ -21,6 +21,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/parkImage"
+                android:padding="8dp"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
@@ -35,7 +36,7 @@
                 android:layout_above="@+id/parkDistance"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:layout_margin="8dp" />
+                android:layout_margin="12dp" />
             <TextView
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
@@ -44,7 +45,7 @@
                 android:layout_above="@+id/explore"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:layout_margin="8dp" />
+                android:layout_margin="12dp" />
             <!--<TextView-->
                 <!--android:layout_width="match_parent"-->
                 <!--android:layout_height="wrap_content"-->
@@ -67,7 +68,7 @@
                 android:id="@+id/explore"
                 android:layout_alignParentBottom="true"
                 android:text="Explore"
-                android:textColor="#795548"
+                android:textColor="@color/colorAccent"
                 android:background="@android:color/transparent" />
             <Button
                 android:layout_width="wrap_content"
@@ -78,7 +79,7 @@
                 android:layout_alignParentBottom="true"
                 android:layout_toRightOf="@+id/explore"
                 android:layout_toEndOf="@+id/explore"
-                android:textColor="#795548"
+                android:textColor="@color/colorAccent"
                 android:background="@android:color/transparent"/>
 
         </RelativeLayout>

@@ -4,6 +4,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.http.AndroidHttpClient;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
@@ -19,6 +20,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
@@ -30,6 +35,7 @@ import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 
 import org.apache.http.Header;
 
+import java.awt.font.TextAttribute;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 
@@ -48,6 +54,10 @@ public class MainActivity extends AppCompatActivity {
 
     private MobileServiceClient mClient;
 
+    FragmentManager fragmentManager;
+
+    private TextView email;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,9 +65,10 @@ public class MainActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        fragmentManager = getSupportFragmentManager();
+
         if (savedInstanceState == null) {
-            LoginFragment fragment = new LoginFragment();
-            FragmentManager fragmentManager = getSupportFragmentManager();
+            LocalFragment fragment = new LocalFragment();
             fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
         }
 
@@ -77,6 +88,17 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
+        View headerView = navigationView.getHeaderView(0);
+        email = (TextView) headerView.findViewById(R.id.accountEmail);
+        email.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ProfileFragment fragment = new ProfileFragment();
+                fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+                drawerLayout.closeDrawers();
+            }
+        });
+
         try {
             mClient = new MobileServiceClient(
                     MOBILE_SERVICE_URL,
@@ -87,16 +109,6 @@ public class MainActivity extends AppCompatActivity {
 
         mClient.registerSerializer(Review[].class, new ReviewArraySerializer());
         mClient.registerDeserializer(Review[].class, new ReviewArraySerializer());
-
-//
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
 
 //        recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
 //        recyclerView.setHasFixedSize(true);
@@ -190,21 +202,36 @@ public class MainActivity extends AppCompatActivity {
     public void selectDrawerItem(MenuItem menuItem) {
         Fragment fragment = null;
         Class fragmentClass = null;
+//        LocalFragment localFragment;
+//        WhatsHotFragment whatsHotFragment;
+//        TrendingFragment trendingFragment;
+//        ProfileFragment profileFragment;
+
         switch(menuItem.getItemId()) {
             case R.id.local_fragment:
                 fragmentClass = LocalFragment.class;
+//                localFragment = new LocalFragment();
+//                fragmentManager.beginTransaction().replace(R.id.content_frame, localFragment).commit();
                 break;
             case R.id.whats_hot_fragment:
                 fragmentClass = WhatsHotFragment.class;
+//                whatsHotFragment = new WhatsHotFragment();
+//                fragmentManager.beginTransaction().replace(R.id.content_frame, whatsHotFragment).commit();
                 break;
             case R.id.trending_fragment:
-//                fragmentClass = TrendingFragment.class;
+                fragmentClass = TrendingFragment.class;
+//                trendingFragment = new TrendingFragment();
+//                fragmentManager.beginTransaction().replace(R.id.content_frame, trendingFragment).commit();
                 break;
             case R.id.logout:
                 logout();
                 fragmentClass = LoginFragment.class;
+//                localFragment = new LocalFragment();
+//                fragmentManager.beginTransaction().replace(R.id.content_frame, localFragment).commit();
+                break;
             default:
-                fragmentClass = LoginFragment.class;
+                fragmentClass = LocalFragment.class;
+                break;
         }
 
         try {

@@ -6,20 +6,19 @@
     android:background="@color/colorAccent"
     android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark"
-    android:gravity="bottom">
+    android:gravity="bottom" >
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_account_circle_24dp"
-        android:id="@+id/imageView" />
+        android:src="@drawable/ic_account_circle_24dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/accountName"
         android:textColor="@android:color/white"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -27,5 +26,6 @@
         android:id="@+id/accountEmail"
         android:textColor="@android:color/white"
         android:text="Sign in or register for an account"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:clickable="true" />
 </LinearLayout>

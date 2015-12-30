@@ -1,28 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- SUBMENUS -->
+<!--<menu xmlns:android="http://schemas.android.com/apk/res/android">-->
+    <!--<group android:checkableBehavior="single">-->
+        <!--<item android:title="Parks">-->
+            <!--<menu>-->
+                <!--<item-->
+                    <!--android:id="@+id/local_fragment"-->
+                    <!--android:actionLayout="@layout/fragment_local"-->
+                    <!--android:checked="true"-->
+                    <!--android:icon="@drawable/ic_near_me_black_24px"-->
+                    <!--android:title="@string/local"/>-->
+                <!--<item-->
+                    <!--android:id="@+id/whats_hot_fragment"-->
+                    <!--android:icon="@drawable/ic_whatshot_black_24px"-->
+                    <!--android:title="@string/whatshot"/>-->
+                <!--<item-->
+                    <!--android:id="@+id/trending_fragment"-->
+                    <!--android:icon="@drawable/ic_trending_up_black_24px"-->
+                    <!--android:title="@string/trending"/>-->
+                <!--<item-->
+                    <!--android:id="@+id/logout"-->
+                    <!--android:icon="@drawable/ic_exit_to_app_black_24px"-->
+                    <!--android:title="@string/logout" />-->
+
+            <!--</menu>-->
+        <!--</item>-->
+    <!--</group>-->
+<!--</menu>-->
+
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
-        <item android:title="Parks">
-            <menu>
-                <item
-                    android:id="@+id/local_fragment"
-                    android:actionLayout="@layout/fragment_local"
-                    android:checked="true"
-                    android:icon="@drawable/ic_near_me_black_24px"
-                    android:title="Local Parks"/>
-                <item
-                    android:id="@+id/whats_hot_fragment"
-                    android:icon="@drawable/ic_whatshot_black_24px"
-                    android:title="What's Hot"/>
-                <item
-                    android:id="@+id/trending_fragment"
-                    android:icon="@drawable/ic_trending_up_black_24px"
-                    android:title="Trending"/>
-                <item
-                    android:id="@+id/logout"
-                    android:icon="@drawable/ic_exit_to_app_black_24px"
-                    android:title="Logout" />
-
-            </menu>
-        </item>
+        <item
+            android:id="@+id/local_fragment"
+            android:actionLayout="@layout/fragment_local"
+            android:checked="true"
+            android:icon="@drawable/ic_near_me_black_24px"
+            android:title="@string/local"/>
+        <item
+            android:id="@+id/whats_hot_fragment"
+            android:icon="@drawable/ic_whatshot_black_24px"
+            android:title="@string/whatshot"/>
+        <item
+            android:id="@+id/trending_fragment"
+            android:icon="@drawable/ic_trending_up_black_24px"
+            android:title="@string/trending"/>
+        <item
+            android:id="@+id/logout"
+            android:icon="@drawable/ic_exit_to_app_black_24px"
+            android:title="@string/logout" />
     </group>
 </menu>

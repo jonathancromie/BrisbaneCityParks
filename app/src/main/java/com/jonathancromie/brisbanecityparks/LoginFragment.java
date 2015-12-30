@@ -4,15 +4,21 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.facebook.login.widget.LoginButton;
@@ -52,6 +58,8 @@ public class LoginFragment extends Fragment {
     private MobileServiceAuthenticationProvider provider;
     private ProgressBar mProgressBar;
 
+    private ImageView image;
+
 
     public LoginFragment() {
         // Required empty public constructor
@@ -64,10 +72,20 @@ public class LoginFragment extends Fragment {
 //        FacebookSdk.sdkInitialize(getActivity().getApplicationContext());
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_login, container, false);
+
+//        DisplayMetrics metrics = new DisplayMetrics();
+//        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+//        int height = metrics.heightPixels;
+//        int width = metrics.widthPixels;
+
+//        image = (ImageView) rootView.findViewById(R.id.image);
+//        image.setImageBitmap(decodeSampledBitmapFromResource(getResources(),
+//                R.drawable.park, width, height));
+
         mProgressBar = (ProgressBar) rootView.findViewById(R.id.loadingProgressBar);
 
         // Initialize the progress bar
-        mProgressBar.setVisibility(ProgressBar.GONE);
+        mProgressBar.setVisibility(ProgressBar.VISIBLE);
 
         getActivity().setTitle(R.string.login);
 
@@ -75,11 +93,12 @@ public class LoginFragment extends Fragment {
             mClient = new MobileServiceClient(
                     MOBILE_SERVICE_URL,
                     MOBILE_SERVICE_KEY, getContext())
-                    .withFilter(new ProgressFilter())
-                    .withFilter(new RefreshTokenCacheFilter());
+                    .withFilter(new ProgressFilter());
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+
+        authenticate();
 
 //        if (loadUserTokenCache(mClient)) {
 //            CookieSyncManager.createInstance(getContext());
@@ -109,58 +128,38 @@ public class LoginFragment extends Fragment {
                 case R.id.google:
                     provider = MobileServiceAuthenticationProvider.Google;
             }
-            authenticate(false);
+//            authenticate(false);
         }
     };
 
-    /**
-     * Authenticates with the desired login provider. Also caches the token.
-     *
-     * If a local token cache is detected, the token cache is used instead of an actual
-     * login unless bRefresh is set to true forcing a refresh.
-     *
-     * @param bRefreshCache
-     *            Indicates whether to force a token refresh.
-     */
-    private void authenticate(boolean bRefreshCache) {
-
-        bAuthenticating = true;
-
-        if (bRefreshCache || !loadUserTokenCache(mClient))
+    private void authenticate() {
+        // We first try to load a token cache if one exists.
+        if (loadUserTokenCache(mClient))
         {
-            // New login using the provider and update the token cache.
-            mClient.login(provider,
-                    new UserAuthenticationCallback() {
-                        @Override
-                        public void onCompleted(MobileServiceUser user,
-                                                Exception exception, ServiceFilterResponse response) {
-
-                            synchronized (mAuthenticationLock) {
-                                if (exception == null) {
-                                    cacheUserToken(mClient.getCurrentUser());
-                                    createFragment();
-                                } else {
-                                    createAndShowDialog(exception.getMessage(), "Login Error");
-                                }
-                                bAuthenticating = false;
-                                mAuthenticationLock.notifyAll();
-                            }
-                        }
-                    });
-        }
-        else
-        {
-            // Other threads may be blocked waiting to be notified when
-            // authentication is complete.
-            synchronized(mAuthenticationLock)
-            {
-                bAuthenticating = false;
-                mAuthenticationLock.notifyAll();
-            }
             createFragment();
         }
-    }
+        // If we failed to load a token cache, login and create a token cache
+        else
+        {
+            // Login using the Google provider.
+            ListenableFuture<MobileServiceUser> mLogin = mClient.login(MobileServiceAuthenticationProvider.Google);
 
+            Futures.addCallback(mLogin, new FutureCallback<MobileServiceUser>() {
+                @Override
+                public void onFailure(Throwable exc) {
+                    createAndShowDialog("You must log in. Login Required", "Error");
+                }
+                @Override
+                public void onSuccess(MobileServiceUser user) {
+                    createAndShowDialog(String.format(
+                            "You are now logged in - %1$2s",
+                            user.getUserId()), "Success");
+                    cacheUserToken(mClient.getCurrentUser());
+                    createFragment();
+                }
+            });
+        }
+    }
 
     private void createFragment() {
         LocalFragment fragment = new LocalFragment();
@@ -195,54 +194,7 @@ public class LoginFragment extends Fragment {
         return true;
     }
 
-    /**
-     * Detects if authentication is in progress and waits for it to complete.
-     * Returns true if authentication was detected as in progress. False otherwise.
-     */
-    public boolean detectAndWaitForAuthentication()
-    {
-        boolean detected = false;
-        synchronized(mAuthenticationLock)
-        {
-            do
-            {
-                if (bAuthenticating == true)
-                    detected = true;
-                try
-                {
-                    mAuthenticationLock.wait(1000);
-                }
-                catch(InterruptedException e)
-                {}
-            }
-            while(bAuthenticating == true);
-        }
-        if (bAuthenticating == true)
-            return true;
 
-        return detected;
-    }
-
-    /**
-     * Waits for authentication to complete then adds or updates the token
-     * in the X-ZUMO-AUTH request header.
-     *
-     * @param request
-     *            The request that receives the updated token.
-     */
-    private void waitAndUpdateRequestToken(ServiceFilterRequest request)
-    {
-        MobileServiceUser user = null;
-        if (detectAndWaitForAuthentication())
-        {
-            user = mClient.getCurrentUser();
-            if (user != null)
-            {
-                request.removeHeader("X-ZUMO-AUTH");
-                request.addHeader("X-ZUMO-AUTH", user.getAuthenticationToken());
-            }
-        }
-    }
 
     /**
      * Creates a dialog and shows it
@@ -268,76 +220,43 @@ public class LoginFragment extends Fragment {
         builder.create().show();
     }
 
-    /**
-     * The RefreshTokenCacheFilter class filters responses for HTTP status code 401.
-     * When 401 is encountered, the filter calls the authenticate method on the
-     * UI thread. Out going requests and retries are blocked during authentication.
-     * Once authentication is complete, the token cache is updated and
-     * any blocked request will receive the X-ZUMO-AUTH header added or updated to
-     * that request.
-     */
-    private class RefreshTokenCacheFilter implements ServiceFilter {
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
 
-        AtomicBoolean mAtomicAuthenticatingFlag = new AtomicBoolean();
+        if (height > reqHeight || width > reqWidth) {
 
-        @Override
-        public ListenableFuture<ServiceFilterResponse> handleRequest(
-                final ServiceFilterRequest request,
-                final NextServiceFilterCallback nextServiceFilterCallback
-        )
-        {
-            // In this example, if authentication is already in progress we block the request
-            // until authentication is complete to avoid unnecessary authentications as
-            // a result of HTTP status code 401.
-            // If authentication was detected, add the token to the request.
-            waitAndUpdateRequestToken(request);
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
 
-            // Send the request down the filter chain
-            // retrying up to 5 times on 401 response codes.
-            ListenableFuture<ServiceFilterResponse> future = null;
-            ServiceFilterResponse response = null;
-            int responseCode = 401;
-            for (int i = 0; (i < 5 ) && (responseCode == 401); i++)
-            {
-                future = nextServiceFilterCallback.onNext(request);
-                try {
-                    response = future.get();
-                    responseCode = response.getStatus().getStatusCode();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    if (e.getCause().getClass() == MobileServiceException.class)
-                    {
-                        MobileServiceException mEx = (MobileServiceException) e.getCause();
-                        responseCode = mEx.getResponse().getStatus().getStatusCode();
-                        if (responseCode == 401)
-                        {
-                            // Two simultaneous requests from independent threads could get HTTP status 401.
-                            // Protecting against that right here so multiple authentication requests are
-                            // not setup to run on the UI thread.
-                            // We only want to authenticate once. Requests should just wait and retry
-                            // with the new token.
-                            if (mAtomicAuthenticatingFlag.compareAndSet(false, true))
-                            {
-                                // Authenticate on UI thread
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        // Force a token refresh during authentication.
-                                        authenticate(true);
-                                    }
-                                });
-                            }
-
-                            // Wait for authentication to complete then update the token in the request.
-                            waitAndUpdateRequestToken(request);
-                            mAtomicAuthenticatingFlag.set(false);
-                        }
-                    }
-                }
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
             }
-            return future;
         }
+
+        return inSampleSize;
+    }
+
+    public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+                                                         int reqWidth, int reqHeight) {
+
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeResource(res, resId, options);
+
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeResource(res, resId, options);
     }
 
     /**

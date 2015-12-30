@@ -140,12 +140,8 @@ public class ParkFragment extends Fragment {
             int stars = (int) data.getFloatExtra("stars", 0);
 
             addReview(comment, stars);
-
             // show park fragment again
-
-//            Review review = new Review(rating, comment);
-//            reviewAdapter.addReview(review);
-//            reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
+//            refreshItemsFromTable();
         }
     }
 
@@ -172,8 +168,7 @@ public class ParkFragment extends Fragment {
                                     if (exception != null) {
                                         createAndShowDialog(exception, "Error");
                                     } else {
-                                        createAndShowDialog("Inserted id = " + entity.getId(), "Success");
-
+                                        createAndShowDialog("Your review has been added", "Success");
                                     }
                                 }
                             });
@@ -193,79 +188,27 @@ public class ParkFragment extends Fragment {
 
             @Override
             protected Void doInBackground(Void... params) {
+                final Park result;
                 try {
-                    final Park result = parkTable.lookUp(ID).get();
+                    result = parkTable.lookUp(ID).get();
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             getActivity().setTitle(result.getName());
                             Review[] reviews = result.getReviews();
                             for (Review review : reviews) {
-//                                for (int i = 0; i < review.getStars(); i++) {
-//
-//                                }
                                 reviewAdapter.addReview(review);
                                 reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
                             }
                         }
                     });
-                } catch (Exception exception) {
-                    createAndShowDialog(exception, "Error");
+                }
+
+                catch (Exception e) {
+                    e.printStackTrace();
                 }
                 return null;
             }
         }.execute();
-
-//        // Get the items that weren't marked as completed and add them in the adapter
-//        new AsyncTask<Void, Void, Void>() {
-//
-//            @Override
-//            protected Void doInBackground(Void... params) {
-//                try {
-//                    parkTable.top(10).execute(new TableQueryCallback<Park>() {
-//
-//                        @Override
-//                        public void onCompleted(final List<Park> parks, int count, Exception exception, ServiceFilterResponse response) {
-//                            if (exception != null) {
-//                                createAndShowDialog(exception, "Error");
-//                            } else {
-//                                getActivity().runOnUiThread(new Runnable() {
-//
-//                                    @Override
-//                                    public void run() {
-//                                        StringBuilder sb = new StringBuilder();
-//                                        for (Park park : parks) {
-//                                            String parkId = getArguments().getString("parkId");
-//                                            if (parkId.equals(park.getId())) {
-//                                                String name = park.getName();
-//                                                String street = park.getStreet();
-//                                                String suburb = park.getSuburb();
-//
-//                                                getActivity().setTitle(name);
-//                                                Review[] reviews = park.getReviews();
-//                                                for (Review review : reviews) {
-////                                                    for (int i = 0; i < review.getStars(); i++) {
-////
-////                                                    }
-//                                                    reviewAdapter.addReview(review);
-//                                                    reviewAdapter.notifyItemInserted(reviewAdapter.reviews.size() - 1);
-//                                                }
-//                                            } else {
-//
-//                                            }
-//                                        }
-//
-//                                    }
-//                                });
-//                            }
-//                        }
-//                    });
-//                } catch (Exception exception) {
-//                    createAndShowDialog(exception, "Error");
-//                }
-//
-//                return null;
-//            }
-//        }.execute();
     }
 
     /**

@@ -46,8 +46,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class WhatsHotFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+public class TrendingFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String MOBILE_SERVICE_URL = "https://brisbanecityparks.azure-mobile.net/";
     private static final String MOBILE_SERVICE_KEY = "zekjnWkJSxVYLuumxxydGozfpOSlBn97";
 
@@ -68,7 +68,7 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
 
     MobileServiceJsonTable userTable;
 
-    public WhatsHotFragment() {
+    public TrendingFragment() {
 
     }
 
@@ -142,7 +142,7 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
     @Override
     public void onResume() {
         super.onResume();
-        getActivity().setTitle(R.string.whatshot);
+        getActivity().setTitle(R.string.trending);
     }
 
 
@@ -293,5 +293,4 @@ public class WhatsHotFragment extends Fragment implements GoogleApiClient.Connec
             return resultFuture;
         }
     }
-
 }
