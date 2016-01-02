@@ -20,19 +20,39 @@
         <!--android:layout_centerHorizontal="true"-->
         <!--android:layout_margin="8dp" />-->
 
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/google"
-        android:layout_width="match_parent"
+    <!--<com.google.android.gms.common.SignInButton-->
+        <!--android:id="@+id/google"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_centerVertical="true"-->
+        <!--android:layout_centerHorizontal="true" />-->
+
+
+    <Button
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:text="Facebook"
+        android:id="@+id/facebook"
+        android:layout_alignTop="@+id/google"
+        android:layout_toLeftOf="@+id/loadingProgressBar"
+        android:layout_toStartOf="@+id/loadingProgressBar" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Google"
+        android:id="@+id/google"
+        android:layout_marginTop="168dp"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/loadingProgressBar"
+        android:layout_toEndOf="@+id/loadingProgressBar" />
 
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/loadingProgressBar"
-        android:layout_alignBottom="@+id/google"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

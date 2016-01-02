@@ -35,6 +35,7 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -139,7 +140,7 @@ public class ParkFragment extends Fragment {
             String comment = data.getStringExtra("comment");
             int stars = (int) data.getFloatExtra("stars", 0);
 
-            addReview(comment, stars);
+            addReview(comment, stars, new Date());
             // show park fragment again
 //            refreshItemsFromTable();
         }
@@ -148,7 +149,7 @@ public class ParkFragment extends Fragment {
     /**
      * Lookup specific item from table and UI
      */
-    public void addReview(final String comment, final int stars) {
+    public void addReview(final String comment, final int stars, final Date date) {
         final String ID = getArguments().getString("parkId");
         new AsyncTask<Void, Void, Void>() {
 
@@ -157,7 +158,7 @@ public class ParkFragment extends Fragment {
                 try {
 
                     final Park park = parkTable.lookUp(ID).get();
-                    Review review = new Review(comment, stars);
+                    Review review = new Review(comment, stars, date);
                     park.setReviews(new Review[] {review});
 
                     getActivity().runOnUiThread(new Runnable() {

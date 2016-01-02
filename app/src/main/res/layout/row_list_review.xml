@@ -10,7 +10,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/user"
         android:text="Anonymous says: "
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:layout_margin="8dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -25,12 +26,26 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/stars"
+        style="?android:attr/ratingBarStyleSmall"
         android:isIndicator="true"
-        android:layout_below="@+id/comment"
+        android:numStars="5"
+        android:progressBackgroundTint="@color/colorPrimaryDark"
+        android:minWidth="100dp"
+        android:layout_below="@+id/user"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:numStars="5"
-        android:progressBackgroundTint="@color/colorPrimaryDark" />
+        android:layout_marginLeft="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Date"
+        android:id="@+id/date"
+        android:textStyle="italic"
+        android:layout_alignTop="@+id/stars"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="8dp" />
 
 
 </RelativeLayout>

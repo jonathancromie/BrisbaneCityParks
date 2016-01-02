@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
@@ -48,12 +49,11 @@ public class LoginFragment extends Fragment {
 
     private MobileServiceClient mClient;
 
+//    private LoginButton facebookLogin;
+//    private SignInButton googleLogin;
 
-    public boolean bAuthenticating = false;
-    public final Object mAuthenticationLock = new Object();
-
-    //    private LoginButton facebookLogin;
-    private SignInButton googleLogin;
+    private Button facebook;
+    private Button google;
 
     private MobileServiceAuthenticationProvider provider;
     private ProgressBar mProgressBar;
@@ -98,25 +98,20 @@ public class LoginFragment extends Fragment {
             e.printStackTrace();
         }
 
-        authenticate();
-
-//        if (loadUserTokenCache(mClient)) {
-//            CookieSyncManager.createInstance(getContext());
-//            CookieManager cookieManager = CookieManager.getInstance();
-//            cookieManager.removeAllCookie();
-//
-//            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-//            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-//            LocalFragment fragment = new LocalFragment();
-//            fragmentTransaction.replace(R.id.content_frame, fragment);
-//            fragmentTransaction.commit();
-//        }
+//        authenticate();
 
 //        facebookLogin = (LoginButton) rootView.findViewById(R.id.facebook);
 //        facebookLogin.setOnClickListener(loginWithProviderClickListener);
 
-        googleLogin = (SignInButton) rootView.findViewById(R.id.google);
-        googleLogin.setOnClickListener(loginWithProviderClickListener);
+//        googleLogin = (SignInButton) rootView.findViewById(R.id.google);
+//        googleLogin.setOnClickListener(loginWithProviderClickListener);
+
+        facebook = (Button) rootView.findViewById(R.id.facebook);
+        google = (Button) rootView.findViewById(R.id.google);
+
+        facebook.setOnClickListener(loginWithProviderClickListener);
+        google.setOnClickListener(loginWithProviderClickListener);
+
 
         return rootView;
     }
@@ -125,10 +120,16 @@ public class LoginFragment extends Fragment {
         @Override
         public void onClick(View v) {
             switch (v.getId()) {
+                case R.id.facebook:
+                    provider = MobileServiceAuthenticationProvider.Facebook;
+                    break;
                 case R.id.google:
                     provider = MobileServiceAuthenticationProvider.Google;
+                    break;
+                default:
+                    break;
             }
-//            authenticate(false);
+            authenticate();
         }
     };
 
@@ -142,7 +143,7 @@ public class LoginFragment extends Fragment {
         else
         {
             // Login using the Google provider.
-            ListenableFuture<MobileServiceUser> mLogin = mClient.login(MobileServiceAuthenticationProvider.Google);
+            ListenableFuture<MobileServiceUser> mLogin = mClient.login(provider);
 
             Futures.addCallback(mLogin, new FutureCallback<MobileServiceUser>() {
                 @Override
@@ -156,6 +157,8 @@ public class LoginFragment extends Fragment {
                             user.getUserId()), "Success");
                     cacheUserToken(mClient.getCurrentUser());
                     createFragment();
+
+
                 }
             });
         }

@@ -1,10 +1,15 @@
 package com.jonathancromie.brisbanecityparks;
 
+import android.accounts.AccountManager;
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.net.http.AndroidHttpClient;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
@@ -21,25 +26,33 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.GooglePlayServicesAvailabilityException;
+import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.common.AccountPicker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.gson.JsonObject;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
-import com.microsoft.windowsazure.mobileservices.ServiceFilterResponseCallback;
-import com.microsoft.windowsazure.mobileservices.http.NextServiceFilterCallback;
-import com.microsoft.windowsazure.mobileservices.http.ServiceFilter;
-import com.microsoft.windowsazure.mobileservices.http.ServiceFilterRequest;
+import com.microsoft.windowsazure.mobileservices.UserAuthenticationCallback;
+import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceAuthenticationProvider;
+import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceUser;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 
-import org.apache.http.Header;
-
-import java.awt.font.TextAttribute;
+import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  {
+
+    static final String GOOGLE_SCOPE_TAKE2 = "audience:server:client_id:";
+    static final String CLIENT_ID_WEB_APPS = "129603432412-77lpj8bs8nh8rfprninmdr359cbprh63.apps.googleusercontent.com";
+    static final String GOOGLE_ID_TOKEN_SCOPE = GOOGLE_SCOPE_TAKE2 + CLIENT_ID_WEB_APPS;
+    static final int REQUEST_CODE_PICK_ACCOUNT = 1000;
+    static final int REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR = 1001;
 
 //    private RecyclerView recyclerView;
 //    private LinearLayoutManager linearLayoutManager;
@@ -56,7 +69,8 @@ public class MainActivity extends AppCompatActivity {
 
     FragmentManager fragmentManager;
 
-    private TextView email;
+    private TextView mAccountName;
+    private TextView mAccountEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,12 +103,19 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
 
         View headerView = navigationView.getHeaderView(0);
-        email = (TextView) headerView.findViewById(R.id.accountEmail);
-        email.setOnClickListener(new View.OnClickListener() {
+        mAccountName = (TextView) headerView.findViewById(R.id.accountName);
+        mAccountEmail = (TextView) headerView.findViewById(R.id.accountEmail);
+        mAccountEmail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ProfileFragment fragment = new ProfileFragment();
-                fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+                int isAvailableResult = GooglePlayServicesUtil.isGooglePlayServicesAvailable(MainActivity.this);
+                if (isAvailableResult == ConnectionResult.SUCCESS) {
+                    Log.d("msg", "Result for isGooglePlayServicesAvailable: SUCCESS");
+                    pickUserAccount();
+                } else {
+                    Log.e("error", "Google play services is not available: " + isAvailableResult);
+                }
+
                 drawerLayout.closeDrawers();
             }
         });
@@ -185,6 +206,21 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle.syncState();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE_PICK_ACCOUNT) {
+            if (resultCode == RESULT_OK) {
+                String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+                Log.d("msg", "Account name: " + accountName);
+                getTokenAndLogin(accountName);
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.d("msg", "Activity cancelled by user");
+            }
+        } else if (requestCode == REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR && resultCode == RESULT_OK) {
+            getTokenAndLogin(mAccountName.getText().toString());
+        }
+    }
+
     private ActionBarDrawerToggle setUpDrawerToggle() {
         return new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.drawer_close);
     }
@@ -197,6 +233,62 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    private void pickUserAccount() {
+        String[] accountTypes = new String[] { "com.google" };
+        Intent intent = AccountPicker.newChooseAccountIntent(null, null, accountTypes, false, null, null, null, null);
+        startActivityForResult(intent, REQUEST_CODE_PICK_ACCOUNT);
+    }
+
+    private void getTokenAndLogin(String accountName) {
+        if (mAccountName == null) {
+            pickUserAccount();
+        } else {
+            if (isDeviceOnline()) {
+                new GetTokenAndLoginTask(this, GOOGLE_ID_TOKEN_SCOPE, accountName).execute((Void)null);
+            } else {
+                Toast.makeText(this, "Not Online", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private boolean isDeviceOnline() {
+        ConnectivityManager mgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = mgr.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnected();
+    }
+
+    public void handleException(final Exception e) {
+        // Because this call comes from the AsyncTask, we must ensure that the following
+        // code instead executes on the UI thread.
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (e instanceof GooglePlayServicesAvailabilityException) {
+                    // The Google Play services APK is old, disabled, or not present.
+                    // Show a dialog created by Google Play services that allows
+                    // the user to update the APK
+                    int statusCode = ((GooglePlayServicesAvailabilityException)e)
+                            .getConnectionStatusCode();
+                    Dialog dialog = GooglePlayServicesUtil.getErrorDialog(statusCode,
+                            MainActivity.this,
+                            REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR);
+                    dialog.show();
+                } else if (e instanceof UserRecoverableAuthException) {
+                    // Unable to authenticate, such as when the user has not yet granted
+                    // the app access to the account, but the user can fix this.
+                    // Forward the user to an activity in Google Play services.
+                    Intent intent = ((UserRecoverableAuthException)e).getIntent();
+                    startActivityForResult(intent,
+                            REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR);
+                }
+            }
+        });
+    }
+
+    private void updateTextView(String s) {
+        mAccountName.setText(s);
     }
 
     public void selectDrawerItem(MenuItem menuItem) {
@@ -257,5 +349,67 @@ public class MainActivity extends AppCompatActivity {
         editor.clear();
         editor.commit();
         mClient.logout();
+    }
+
+    class GetTokenAndLoginTask extends AsyncTask<Void, Void, Void> {
+
+        MainActivity mActivity;
+        String mScope;
+        String mEmail;
+
+        public GetTokenAndLoginTask(MainActivity activity, String scope, String email) {
+            this.mActivity = activity;
+            this.mScope = scope;
+            this.mEmail = email;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                final String token = fetchIdToken();
+                if (token != null) {
+                    loginToMobileService(token);
+                }
+            } catch (IOException e) {
+                Log.e("error", "Exception: " + e);
+            }
+
+            return null;
+        }
+
+        protected String fetchIdToken() throws IOException {
+            try {
+                return GoogleAuthUtil.getToken(mActivity, mEmail, mScope);
+            } catch (UserRecoverableAuthException urae) {
+                mActivity.handleException(urae);
+            } catch (GoogleAuthException gae) {
+                Log.e("error", "Unrecoverable exception: " + gae);
+            }
+            return null;
+        }
+
+        protected void loginToMobileService(final String idToken) {
+            runOnUiThread(new Runnable(){
+
+                @Override
+                public void run() {
+                    mActivity.updateTextView(idToken);
+                    JsonObject loginBody = new JsonObject();
+                    loginBody.addProperty("id_token", idToken);
+                    mClient.login(MobileServiceAuthenticationProvider.Google, loginBody, new UserAuthenticationCallback() {
+
+                        @Override
+                        public void onCompleted(MobileServiceUser user, Exception error,
+                                                ServiceFilterResponse response) {
+                            if (error != null) {
+                                Log.e("error", "Login error: " + error);
+                            } else {
+                                Log.d("msg", "Logged in to the mobile service as " + user.getUserId());
+                            }
+                        }
+                    });
+                }
+            });
+        }
     }
 }
